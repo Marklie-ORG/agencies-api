@@ -4,9 +4,9 @@ import { EntityManager } from "@mikro-orm/postgresql";
 
 export const orm = await MikroORM.init({
     metadataProvider: TsMorphMetadataProvider,
-    entities: ["./dist/entities/*.js"],
-    entitiesTs: ["./src/entities/*.ts"],
-    dbName: "",
+    entities: ["./dist/lib/entities/*.js"],
+    entitiesTs: ["./src/lib/entities/*.ts"],
+    dbName: "saas",
     host: "localhost",
     port: 5432,
     user: "postgres",
