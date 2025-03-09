@@ -1,9 +1,11 @@
 import axios, { type AxiosInstance } from "axios";
+import RedisClient from "../db/redis/Redis.js";
 
 export class FacebookReportsApi {
   private static readonly api: AxiosInstance = this.getHttpClient();
-  private static readonly FACEBOOK_ACCESS_TOKEN: string = process.env
-    .FACEBOOK_ACCESS_TOKEN as string;
+  private static readonly FACEBOOK_ACCESS_TOKEN: string =
+    this.getOrganizationAccessToken("test");
+  private static readonly CACHE_EXPIRY = 3600;
 
   private static getHttpClient(): AxiosInstance {
     const instance = axios.create({
@@ -22,8 +24,24 @@ export class FacebookReportsApi {
     return instance;
   }
 
-  public static async getKpis(datePreset: string) {
+  private static getOrganizationAccessToken(organizationName: string): string {
+    switch (organizationName) {
+      case "test":
+        return process.env.FACEBOOK_ACCESS_TOKEN as string;
+      default:
+        return process.env.FACEBOOK_ACCESS_TOKEN as string;
+    }
+  }
+
+  public static async getKpis(organisationName: string, datePreset: string) {
     try {
+      const cacheKey = `${organisationName}:${datePreset}:kpis`;
+
+      const cachedData = await RedisClient.get(cacheKey);
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
+
       const response = await this.api.get(`/insights`, {
         params: {
           date_preset: datePreset,
@@ -32,6 +50,13 @@ export class FacebookReportsApi {
           level: "account",
         },
       });
+
+      await RedisClient.set(
+        cacheKey,
+        JSON.stringify(response.data),
+        this.CACHE_EXPIRY,
+      );
+
       return response.data;
     } catch (error) {
       throw error;
@@ -47,8 +72,18 @@ export class FacebookReportsApi {
     }
   }
 
-  public static async getCampaigns(datePreset: string) {
+  public static async getCampaigns(
+    organizationName: string,
+    datePreset: string,
+  ) {
     try {
+      const cacheKey = `${organizationName}:${datePreset}:campaigns`;
+
+      const cachedData = await RedisClient.get(cacheKey);
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
+
       const response = await this.api.get(`/insights`, {
         params: {
           date_preset: datePreset,
@@ -58,14 +93,28 @@ export class FacebookReportsApi {
           limit: 1000,
         },
       });
+
+      await RedisClient.set(
+        cacheKey,
+        JSON.stringify(response.data),
+        this.CACHE_EXPIRY,
+      );
+
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  public static async getGraphs(datePreset: string) {
+  public static async getGraphs(organizationName: string, datePreset: string) {
     try {
+      const cacheKey = `${organizationName}:${datePreset}:graphs`;
+
+      const cachedData = await RedisClient.get(cacheKey);
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
+
       const response = await this.api.get(`/insights`, {
         params: {
           date_preset: datePreset,
@@ -76,6 +125,13 @@ export class FacebookReportsApi {
           limit: 1000,
         },
       });
+
+      await RedisClient.set(
+        cacheKey,
+        JSON.stringify(response.data),
+        this.CACHE_EXPIRY,
+      );
+
       return response.data;
     } catch (error) {
       throw error;

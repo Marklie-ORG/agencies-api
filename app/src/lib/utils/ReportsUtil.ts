@@ -1,25 +1,44 @@
 import { FacebookReportsApi } from "../apis/FacebookReportsApi.js";
+import RedisClient from "../db/redis/Redis.js";
 
 export class ReportsUtil {
-  public static async getAllReportData(datePreset: string) {
+  private static CACHE_EXPIRY = 3600;
+
+  public static async getAllReportData(
+    organizationName: string,
+    datePreset: string,
+  ) {
     const [bestAds, KPIs, campaigns, graphs] = await Promise.all([
-      this.get10BestPerformingAds(datePreset),
-      FacebookReportsApi.getKpis(datePreset),
-      FacebookReportsApi.getCampaigns(datePreset),
-      FacebookReportsApi.getGraphs(datePreset),
+      this.get10BestPerformingAds(organizationName, datePreset),
+      FacebookReportsApi.getKpis(organizationName, datePreset),
+      FacebookReportsApi.getCampaigns(organizationName, datePreset),
+      FacebookReportsApi.getGraphs(organizationName, datePreset),
     ]);
 
     return { bestAds, KPIs, campaigns, graphs };
   }
 
-  private static async get10BestPerformingAds(datePreset: string) {
+  private static async get10BestPerformingAds(
+    organizationName: string,
+    datePreset: string,
+  ) {
+    const cacheKey = `bestAds:${organizationName}:${datePreset}`;
+
+    const cachedData = await RedisClient.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+
     const data = await FacebookReportsApi.getAds(datePreset);
     const ads = data.data;
+    const bestAds = await this.processAds(ads);
 
-    return await this.processAds(ads);
+    await RedisClient.set(cacheKey, JSON.stringify(bestAds), this.CACHE_EXPIRY);
+
+    return bestAds;
   }
 
-  private static getBest10AdsByRoas(ads: any[]): any[] {
+  private static getBest10AdsByROAS(ads: any[]): any[] {
     return ads
       .filter((ad) => ad.insights?.data?.[0]?.purchase_roas?.[0]?.value)
       .sort((a, b) => {
@@ -30,8 +49,8 @@ export class ReportsUtil {
       .slice(0, 10);
   }
 
-  private static async processAds(ads: any) {
-    const shownAds = this.getBest10AdsByRoas(ads);
+  private static async processAds(ads: any[]) {
+    const shownAds = this.getBest10AdsByROAS(ads);
 
     const reportAds = shownAds.map((ad) => ({
       adCreativeId: ad.creative.id,
@@ -52,7 +71,23 @@ export class ReportsUtil {
     const creativeAssets = await Promise.all(
       shownAds.map(async (ad) => {
         const creativeId = ad.creative.id;
-        return FacebookReportsApi.fetchCreativeAsset(creativeId);
+        const cacheKey = `creativeAsset:${creativeId}`;
+
+        const cachedData = await RedisClient.get(cacheKey);
+        if (cachedData) {
+          return JSON.parse(cachedData);
+        }
+
+        const creativeAsset =
+          await FacebookReportsApi.fetchCreativeAsset(creativeId);
+
+        await RedisClient.set(
+          cacheKey,
+          JSON.stringify(creativeAsset),
+          this.CACHE_EXPIRY,
+        );
+
+        return creativeAsset;
       }),
     );
 
@@ -63,9 +98,24 @@ export class ReportsUtil {
         const reportAd = reportAds[index];
 
         if (effective_instagram_media_id) {
-          const igMedia = await FacebookReportsApi.fetchIgMedia(
-            effective_instagram_media_id,
-          );
+          const cacheKey = `igMedia:${effective_instagram_media_id}`;
+
+          const cachedData = await RedisClient.get(cacheKey);
+          let igMedia;
+          if (cachedData) {
+            igMedia = JSON.parse(cachedData);
+          } else {
+            igMedia = await FacebookReportsApi.fetchIgMedia(
+              effective_instagram_media_id,
+            );
+
+            await RedisClient.set(
+              cacheKey,
+              JSON.stringify(igMedia),
+              this.CACHE_EXPIRY,
+            );
+          }
+
           reportAd.thumbnailUrl =
             igMedia.media_type === "IMAGE" && !igMedia.thumbnail_url
               ? igMedia.media_url
@@ -73,7 +123,22 @@ export class ReportsUtil {
           reportAd.sourceUrl = igMedia.permalink;
         } else {
           const postId = effective_object_story_id.split("_")[1];
-          const post = await FacebookReportsApi.fetchPost(postId);
+          const cacheKey = `post:${postId}`;
+
+          const cachedData = await RedisClient.get(cacheKey);
+          let post;
+          if (cachedData) {
+            post = JSON.parse(cachedData);
+          } else {
+            post = await FacebookReportsApi.fetchPost(postId);
+
+            await RedisClient.set(
+              cacheKey,
+              JSON.stringify(post),
+              this.CACHE_EXPIRY,
+            );
+          }
+
           reportAd.thumbnailUrl =
             post.data[0].adcreatives.data[0].thumbnail_url;
           reportAd.sourceUrl = post.data[0].preview_shareable_link;

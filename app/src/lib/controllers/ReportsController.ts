@@ -9,13 +9,14 @@ export class ReportsController extends Router {
   }
 
   private setUpRoutes() {
-    this.get("/get-report", this.getReport);
+    this.get("/", this.getReport);
   }
 
   private async getReport(ctx: Context) {
     const datePreset = ctx.query.datePreset as string;
+    const organizationName = ctx.query.organizationName as string;
 
-    ctx.body = await ReportsUtil.getAllReportData(datePreset);
+    ctx.body = await ReportsUtil.getAllReportData(organizationName, datePreset);
     ctx.status = 200;
   }
 }
