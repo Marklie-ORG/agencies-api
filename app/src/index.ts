@@ -22,3 +22,5 @@ app
 app.listen(3000, () => {
   console.log(`Auth server is running at ${3000}`);
 });
+
+await orm.getSchemaGenerator().refreshDatabase();

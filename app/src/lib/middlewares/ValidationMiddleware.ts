@@ -1,6 +1,6 @@
 import type { Context, Next } from "koa";
 import { ZodError } from "zod";
-import {Validator} from "../utils/Validator.js";
+import { Validator } from "../utils/Validator.js";
 
 export const ValidationMiddleware = () => {
   return async (ctx: Context, next: Next) => {
@@ -8,6 +8,12 @@ export const ValidationMiddleware = () => {
       if (ctx.method !== "GET") {
         Validator.validateBody(ctx.request);
       }
+      if (ctx.request.query) {
+        Validator.validateQuery(ctx.request);
+      }
+
+      Validator.validateUrl(ctx.request);
+
       await next();
     } catch (e) {
       if (e instanceof ZodError) {
@@ -20,7 +26,7 @@ export const ValidationMiddleware = () => {
         };
       } else {
         ctx.status = 500;
-        ctx.body = { message: "Internal server error" };
+        ctx.body = { message: (e as Error).message };
       }
     }
   };

@@ -8,17 +8,20 @@ export class ReportsUtil {
     organizationName: string,
     datePreset: string,
   ) {
+    const facebookApi = new FacebookReportsApi(organizationName);
+
     const [bestAds, KPIs, campaigns, graphs] = await Promise.all([
-      this.get10BestPerformingAds(organizationName, datePreset),
-      FacebookReportsApi.getKpis(organizationName, datePreset),
-      FacebookReportsApi.getCampaigns(organizationName, datePreset),
-      FacebookReportsApi.getGraphs(organizationName, datePreset),
+      this.get10BestPerformingAds(facebookApi, organizationName, datePreset),
+      facebookApi.getKpis(datePreset),
+      facebookApi.getCampaigns(datePreset),
+      facebookApi.getGraphs(datePreset),
     ]);
 
     return { bestAds, KPIs, campaigns, graphs };
   }
 
   private static async get10BestPerformingAds(
+    facebookApi: FacebookReportsApi,
     organizationName: string,
     datePreset: string,
   ) {
@@ -29,9 +32,9 @@ export class ReportsUtil {
       return JSON.parse(cachedData);
     }
 
-    const data = await FacebookReportsApi.getAds(datePreset);
+    const data = await facebookApi.getAds(datePreset);
     const ads = data.data;
-    const bestAds = await this.processAds(ads);
+    const bestAds = await this.processAds(ads, organizationName);
 
     await RedisClient.set(cacheKey, JSON.stringify(bestAds), this.CACHE_EXPIRY);
 
@@ -49,8 +52,9 @@ export class ReportsUtil {
       .slice(0, 10);
   }
 
-  private static async processAds(ads: any[]) {
+  private static async processAds(ads: any[], organizationName: string) {
     const shownAds = this.getBest10AdsByROAS(ads);
+    const facebookApi = new FacebookReportsApi(organizationName);
 
     const reportAds = shownAds.map((ad) => ({
       adCreativeId: ad.creative.id,
@@ -78,8 +82,7 @@ export class ReportsUtil {
           return JSON.parse(cachedData);
         }
 
-        const creativeAsset =
-          await FacebookReportsApi.fetchCreativeAsset(creativeId);
+        const creativeAsset = await facebookApi.getCreativeAsset(creativeId);
 
         await RedisClient.set(
           cacheKey,
@@ -105,7 +108,7 @@ export class ReportsUtil {
           if (cachedData) {
             igMedia = JSON.parse(cachedData);
           } else {
-            igMedia = await FacebookReportsApi.fetchIgMedia(
+            igMedia = await facebookApi.getIgMedia(
               effective_instagram_media_id,
             );
 
@@ -130,7 +133,7 @@ export class ReportsUtil {
           if (cachedData) {
             post = JSON.parse(cachedData);
           } else {
-            post = await FacebookReportsApi.fetchPost(postId);
+            post = await facebookApi.getPost(postId);
 
             await RedisClient.set(
               cacheKey,

@@ -1,5 +1,5 @@
 import { Entity, Property, BeforeCreate } from "@mikro-orm/core";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { BaseEntity } from "./BaseEntity.js";
 
 @Entity()

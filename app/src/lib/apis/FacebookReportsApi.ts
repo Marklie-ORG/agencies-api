@@ -2,47 +2,43 @@ import axios, { type AxiosInstance } from "axios";
 import RedisClient from "../db/redis/Redis.js";
 
 export class FacebookReportsApi {
-  private static readonly api: AxiosInstance = this.getHttpClient();
-  private static readonly FACEBOOK_ACCESS_TOKEN: string =
-    this.getOrganizationAccessToken("test");
-  private static readonly CACHE_EXPIRY = 3600;
+  private api: AxiosInstance;
+  private readonly FACEBOOK_ACCESS_TOKEN: string;
+  private readonly CACHE_EXPIRY = 3600;
 
-  private static getHttpClient(): AxiosInstance {
-    const instance = axios.create({
+  constructor(private organizationName: string) {
+    this.FACEBOOK_ACCESS_TOKEN =
+      this.getOrganizationAccessToken(organizationName);
+    this.api = axios.create({
       baseURL: "https://graph.facebook.com/v22.0/act_1083076062681667",
       headers: { "Content-Type": "application/json" },
     });
-
-    instance.interceptors.request.use((config) => {
+    this.api.interceptors.request.use((config) => {
       config.params = {
         ...config.params,
         access_token: this.FACEBOOK_ACCESS_TOKEN,
       };
       return config;
     });
-
-    return instance;
   }
 
-  private static getOrganizationAccessToken(organizationName: string): string {
+  private getOrganizationAccessToken(organizationName: string): string {
     switch (organizationName) {
       case "test":
         return process.env.FACEBOOK_ACCESS_TOKEN as string;
       default:
-        return process.env.FACEBOOK_ACCESS_TOKEN as string;
+        throw new Error("Invalid organization");
     }
   }
 
-  public static async getKpis(organisationName: string, datePreset: string) {
+  public async getKpis(datePreset: string) {
     try {
-      const cacheKey = `${organisationName}:${datePreset}:kpis`;
-
+      const cacheKey = `${this.organizationName}:${datePreset}:kpis`;
       const cachedData = await RedisClient.get(cacheKey);
       if (cachedData) {
         return JSON.parse(cachedData);
       }
-
-      const response = await this.api.get(`/insights`, {
+      const response = await this.api.get("/insights", {
         params: {
           date_preset: datePreset,
           fields:
@@ -50,41 +46,34 @@ export class FacebookReportsApi {
           level: "account",
         },
       });
-
       await RedisClient.set(
         cacheKey,
         JSON.stringify(response.data),
         this.CACHE_EXPIRY,
       );
-
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  public static async getRecommendations() {
+  public async getRecommendations() {
     try {
-      const response = await this.api.get(`/recommendations`);
+      const response = await this.api.get("/recommendations");
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  public static async getCampaigns(
-    organizationName: string,
-    datePreset: string,
-  ) {
+  public async getCampaigns(datePreset: string) {
     try {
-      const cacheKey = `${organizationName}:${datePreset}:campaigns`;
-
+      const cacheKey = `${this.organizationName}:${datePreset}:campaigns`;
       const cachedData = await RedisClient.get(cacheKey);
       if (cachedData) {
         return JSON.parse(cachedData);
       }
-
-      const response = await this.api.get(`/insights`, {
+      const response = await this.api.get("/insights", {
         params: {
           date_preset: datePreset,
           fields:
@@ -93,29 +82,25 @@ export class FacebookReportsApi {
           limit: 1000,
         },
       });
-
       await RedisClient.set(
         cacheKey,
         JSON.stringify(response.data),
         this.CACHE_EXPIRY,
       );
-
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  public static async getGraphs(organizationName: string, datePreset: string) {
+  public async getGraphs(datePreset: string) {
     try {
-      const cacheKey = `${organizationName}:${datePreset}:graphs`;
-
+      const cacheKey = `${this.organizationName}:${datePreset}:graphs`;
       const cachedData = await RedisClient.get(cacheKey);
       if (cachedData) {
         return JSON.parse(cachedData);
       }
-
-      const response = await this.api.get(`/insights`, {
+      const response = await this.api.get("/insights", {
         params: {
           date_preset: datePreset,
           fields:
@@ -125,22 +110,20 @@ export class FacebookReportsApi {
           limit: 1000,
         },
       });
-
       await RedisClient.set(
         cacheKey,
         JSON.stringify(response.data),
         this.CACHE_EXPIRY,
       );
-
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  public static async getAds(datePreset: string) {
+  public async getAds(datePreset: string) {
     try {
-      const response = await this.api.get(`/ads`, {
+      const response = await this.api.get("/ads", {
         params: {
           __cppo: 1,
           action_breakdowns: "action_type",
@@ -157,9 +140,9 @@ export class FacebookReportsApi {
     }
   }
 
-  public static async fetchCreativeAsset(creativeId: string) {
+  public async getCreativeAsset(creativeId: string) {
     try {
-      const response = await this.api.get(
+      const response = await axios.get(
         `https://graph.facebook.com/v22.0/${creativeId}`,
         {
           params: {
@@ -174,6 +157,7 @@ export class FacebookReportsApi {
             format: "json",
             fields:
               "id,image_url,image_hash,creative_sourcing_spec,video_id,playable_asset_id,object_id,thumbnail_url,instagram_permalink_url,effective_instagram_media_id,instagram_actor_id,source_instagram_media_id,instagram_story_id,category_media_source,object_story_id,branded_content,dynamic_ad_voice,effective_instagram_story_id,effective_object_story_id",
+            access_token: this.FACEBOOK_ACCESS_TOKEN,
           },
         },
       );
@@ -183,9 +167,9 @@ export class FacebookReportsApi {
     }
   }
 
-  public static async fetchIgMedia(mediaId: string) {
+  public async getIgMedia(mediaId: string) {
     try {
-      const response = await this.api.get(
+      const response = await axios.get(
         `https://graph.facebook.com/v22.0/${mediaId}`,
         {
           params: {
@@ -199,6 +183,7 @@ export class FacebookReportsApi {
             transport: "cors",
             thumbnail_height: 1600,
             thumbnail_width: 1200,
+            access_token: this.FACEBOOK_ACCESS_TOKEN,
           },
         },
       );
@@ -208,21 +193,18 @@ export class FacebookReportsApi {
     }
   }
 
-  public static async fetchPost(postId: string) {
+  public async getPost(postId: string) {
     try {
-      const response = await this.api.get(
-        `https://graph.facebook.com/v22.0/act_1083076062681667/ads`,
-        {
-          params: {
-            fields:
-              "id,name,adcreatives.limit(1){effective_object_story_id,name,thumbnail_url,authorization_category,instagram_permalink_url},preview_shareable_link",
-            search: postId,
-            limit: 1,
-            thumbnail_height: 1080,
-            thumbnail_width: 1080,
-          },
+      const response = await this.api.get(`/ads`, {
+        params: {
+          fields:
+            "id,name,adcreatives.limit(1){effective_object_story_id,name,thumbnail_url,authorization_category,instagram_permalink_url},preview_shareable_link",
+          search: postId,
+          limit: 1,
+          thumbnail_height: 1080,
+          thumbnail_width: 1080,
         },
-      );
+      });
       return response.data;
     } catch (error) {
       throw error;

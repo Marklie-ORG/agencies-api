@@ -1,12 +1,15 @@
-FROM node:18-alpine
+FROM node:20
 
 WORKDIR /usr/src/app
 
-COPY ../app .
-
 RUN npm install -g pnpm
+
+
+COPY ../app/package.json ../app/pnpm-lock.yaml ./
+
 RUN pnpm install
 RUN pnpm build
-COPY .. .
+
+COPY app .
 
 CMD ["pnpm", "start"]
