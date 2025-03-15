@@ -8,7 +8,7 @@ RUN npm install -g pnpm
 COPY ../app/package.json ../app/pnpm-lock.yaml ./
 
 RUN pnpm install
-RUN pnpm build
+RUN pnpm build:all
 
 COPY app .
 
