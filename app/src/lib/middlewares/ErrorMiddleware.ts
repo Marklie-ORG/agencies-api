@@ -18,7 +18,7 @@ export const ErrorMiddleware = () => {
       } else {
         ctx.status = 400;
         ctx.body = {
-          message: e instanceof Error ? e.message : "Internal server error",
+          message: e instanceof Error ? e.message : "Internal server error" + e,
         };
       }
       console.error("ErrorMiddleware caught an error:", e);
