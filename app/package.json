@@ -12,7 +12,7 @@
     "generate:dts": "tsc --emitDeclarationOnly --outDir dist",
     "build:all": "npm run build && npm run generate:dts",
     "start": "node --env-file .env --experimental-specifier-resolution=node dist/index.js",
-    "watch": "pnpm docker:up & npx nodemon --config ./nodemon.json",
+    "watch": "pnpm build:all && pnpm docker:up & npx nodemon --config ./nodemon.json",
     "start:dev": "npm run watch"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
     "@mikro-orm/reflection": "^6.4.3",
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
+    "bullmq": "^5.44.0",
     "ioredis": "^5.4.2",
     "kpi-diploma-typescript-config": "1.0.0",
     "uuid": "^11.1.0",
