@@ -6,9 +6,10 @@ export class ReportsUtil {
 
   public static async getAllReportData(
     organizationName: string,
+    accountId: string,
     datePreset: string,
   ) {
-    const facebookApi = new FacebookReportsApi(organizationName);
+    const facebookApi = new FacebookReportsApi(organizationName, accountId);
 
     const [bestAds, KPIs, campaigns, graphs] = await Promise.all([
       this.get10BestPerformingAds(facebookApi, organizationName, datePreset),

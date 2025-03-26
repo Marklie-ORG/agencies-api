@@ -6,11 +6,11 @@ export class FacebookReportsApi {
   private readonly FACEBOOK_ACCESS_TOKEN: string;
   private readonly CACHE_EXPIRY = 3600;
 
-  constructor(private organizationName: string) {
+  constructor(private organizationName: string, accountId: string) {
     this.FACEBOOK_ACCESS_TOKEN =
       this.getOrganizationAccessToken(organizationName);
     this.api = axios.create({
-      baseURL: "https://graph.facebook.com/v22.0/act_1083076062681667",
+      baseURL: `https://graph.facebook.com/v22.0/${accountId}`,
       headers: { "Content-Type": "application/json" },
     });
     this.api.interceptors.request.use((config) => {
@@ -210,4 +210,37 @@ export class FacebookReportsApi {
       throw error;
     }
   }
+
+  public async getMe() {
+    try {
+      const response = await this.api.get(`/me`, {
+        params: {
+          fields: "id,name",
+          access_token: this.FACEBOOK_ACCESS_TOKEN
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async getAdAccounts(postId: string) {
+    try {
+      const response = await this.api.get(`/ads`, {
+        params: {
+          fields:
+            "id,name,adcreatives.limit(1){effective_object_story_id,name,thumbnail_url,authorization_category,instagram_permalink_url},preview_shareable_link",
+          search: postId,
+          limit: 1,
+          thumbnail_height: 1080,
+          thumbnail_width: 1080,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
