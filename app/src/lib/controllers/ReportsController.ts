@@ -7,7 +7,8 @@ import { CronUtil } from "../utils/CronUtil.js";
 import { OrganizationClient } from "../entities/OrganizationClient.js";
 import { em } from "../db/config/DB.js";
 import authMiddleware from "../middlewares/AuthMiddleware.js";
-import { queue } from "../utils/BullMQWrapper.js";
+import { roleMiddleware } from "../middlewares/RolesMiddleware.js";
+import { OrganizationRole } from "../enums/enums.js";
 
 export class ReportsController extends Router {
   constructor() {
@@ -17,7 +18,12 @@ export class ReportsController extends Router {
 
   private setUpRoutes() {
     this.get("/", this.getReport);
-    this.post("/schedule", authMiddleware, this.scheduleReports);
+    this.post(
+      "/schedule",
+      authMiddleware,
+      roleMiddleware(OrganizationRole.OWNER),
+      this.scheduleReports,
+    );
   }
 
   private async getReport(ctx: Context) {
@@ -48,9 +54,9 @@ export class ReportsController extends Router {
     schedule.jobData = scheduleOption as any;
     schedule.timezone = "UTC";
 
-    await queue.addScheduledJob("user.organization", {}, cronExpression);
-
-    await em.persistAndFlush(schedule);
+    // await queue.addScheduledJob("user.organization", {}, cronExpression);
+    //
+    // await em.persistAndFlush(schedule);
 
     ctx.body = {
       message: "Report schedule created successfully",

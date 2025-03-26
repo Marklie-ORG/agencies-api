@@ -1,7 +1,5 @@
-import * as jwt from "jsonwebtoken";
 import type { Context, Next } from "koa";
-import { em } from "../db/config/DB.js";
-import { User } from "../entities/User.js";
+import { AuthenticationUtil } from "../utils/AuthenticationUtil.js";
 
 async function authMiddleware(ctx: Context, next: Next) {
   try {
@@ -15,9 +13,7 @@ async function authMiddleware(ctx: Context, next: Next) {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded: any = jwt.verify(token, process.env.ACCESS_SECRET as string);
-
-    const user = await em.findOne(User, { uuid: decoded.uuid });
+    const user = await AuthenticationUtil.verifyTokenAndFetchUser(token);
 
     if (!user) {
       ctx.status = 401;

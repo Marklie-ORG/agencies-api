@@ -81,7 +81,9 @@ export class AuthenticationUtil {
     return this.buildTokens(existingUser);
   }
 
-  public static async getUserOrganizations(user: User) {
+  public static async getUserOrganizations(
+    user: User,
+  ): Promise<Organization[]> {
     const organizations = await em.find(
       OrganizationMember,
       { user },
