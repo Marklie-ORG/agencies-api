@@ -1,8 +1,13 @@
-import { Entity, Property, ManyToOne, OneToOne } from "@mikro-orm/core";
+import {
+  Entity,
+  Property,
+  ManyToOne,
+  OneToMany,
+  Collection,
+} from "@mikro-orm/core";
 import { BaseEntity } from "./BaseEntity.js";
 import { Organization } from "./Organization.js";
 import { SchedulingOption } from "./SchedulingOption.js";
-import { ClientTokens } from "./ClientTokens.js";
 
 @Entity()
 export class OrganizationClient extends BaseEntity {
@@ -12,15 +17,9 @@ export class OrganizationClient extends BaseEntity {
   @ManyToOne(() => Organization)
   organization!: Organization;
 
-  @OneToOne(
+  @OneToMany(
     () => SchedulingOption,
-    (schedulingOption) => schedulingOption.client,
-    { owner: true },
+    (schedulingOption: SchedulingOption) => schedulingOption.client,
   )
-  schedulingOption?: SchedulingOption;
-
-  @OneToOne(() => ClientTokens, (clientToken) => clientToken.client, {
-    owner: true,
-  })
-  tokens?: ClientTokens;
+  schedulingOption? = new Collection<SchedulingOption>(this);
 }

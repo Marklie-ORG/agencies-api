@@ -8,6 +8,7 @@ export const ValidationMiddleware = () => {
       if (ctx.method !== "GET") {
         Validator.validateBody(ctx.request);
       }
+
       if (ctx.request.query) {
         Validator.validateQuery(ctx.request);
       }

@@ -24,10 +24,5 @@ services:
     hostname: 'redis'
     ports:
       - '6379:6379'
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - "8090:8080"
 volumes:
   postgres-authservice-data:

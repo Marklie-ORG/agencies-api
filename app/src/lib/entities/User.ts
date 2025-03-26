@@ -16,6 +16,9 @@ export class User extends BaseEntity {
   @Property()
   password!: string;
 
+  @Property({ default: false })
+  emailVerified: boolean = false;
+
   @BeforeCreate()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
