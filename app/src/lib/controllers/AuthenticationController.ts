@@ -5,7 +5,6 @@ import type {
   RegistrationRequestBody,
 } from "../interfaces/AuthInterfaces.js";
 import type { User } from "../entities/User.js";
-import authMiddleware from "../middlewares/AuthMiddleware.js";
 import { AuthenticationUtil } from "../utils/AuthenticationUtil.js";
 
 export class AuthController extends Router {
@@ -17,7 +16,7 @@ export class AuthController extends Router {
   private setUpRoutes() {
     this.post("/login", this.login);
     this.post("/register", this.registration);
-    this.get("/me", authMiddleware, this.me);
+    this.get("/me", this.me);
     this.get("/refresh/:refreshToken", this.refresh);
   }
 
