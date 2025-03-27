@@ -6,7 +6,6 @@ import type { ReportScheduleRequest } from "../interfaces/ReportsInterfaces.js";
 import { CronUtil } from "../utils/CronUtil.js";
 import { OrganizationClient } from "../entities/OrganizationClient.js";
 import { em } from "../db/config/DB.js";
-import authMiddleware from "../middlewares/AuthMiddleware.js";
 import { roleMiddleware } from "../middlewares/RolesMiddleware.js";
 import { OrganizationRole } from "../enums/enums.js";
 
@@ -20,7 +19,6 @@ export class ReportsController extends Router {
     this.get("/", this.getReport);
     this.post(
       "/schedule",
-      authMiddleware,
       roleMiddleware(OrganizationRole.OWNER),
       this.scheduleReports,
     );
@@ -56,7 +54,7 @@ export class ReportsController extends Router {
 
     // await queue.addScheduledJob("user.organization", {}, cronExpression);
     //
-    // await em.persistAndFlush(schedule);
+    await em.persistAndFlush(schedule);
 
     ctx.body = {
       message: "Report schedule created successfully",

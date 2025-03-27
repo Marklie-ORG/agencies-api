@@ -1,3 +1,10 @@
+export type ScheduleFrequency =
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "custom"
+  | "cron";
+
 interface BaseSchedule {
   frequency: string;
   clientUuid: string;
