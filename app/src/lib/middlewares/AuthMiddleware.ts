@@ -1,33 +1,42 @@
-import type { Context, Next } from "koa";
+import type Application from "koa";
+import type { Context, Middleware, Next } from "koa";
+import jwt from "jsonwebtoken";
+import type { User } from "../entities/User.js";
 import { AuthenticationUtil } from "../utils/AuthenticationUtil.js";
 
-async function authMiddleware(ctx: Context, next: Next) {
-  try {
-    const authHeader = ctx.headers["authorization"];
+export const AuthMiddleware: () => Application.Middleware<
+  Application.DefaultState,
+  Application.DefaultContext
+> = (): Middleware => {
+  return async (ctx: Context, next: Next) => {
+    const excludedEndpoints: string[] = ["/login", "/register"];
+    if (excludedEndpoints.some((endpoint) => ctx.path.includes(endpoint))) {
+      await next();
+      return;
+    }
+    const token: string = ctx.get("Authorization").split(" ")[1];
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       ctx.status = 401;
-      ctx.body = { message: "Authorization token missing or malformed" };
+      console.log("No token provided");
       return;
     }
 
-    const token = authHeader.split(" ")[1];
-
-    const user = await AuthenticationUtil.verifyTokenAndFetchUser(token);
-
-    if (!user) {
-      ctx.status = 401;
-      ctx.body = { message: "User not found" };
-      return;
+    try {
+      const user: User | null =
+        await AuthenticationUtil.fetchUserWithTokenInfo(token);
+      if (!token || !user) {
+        ctx.status = 401;
+        ctx.body = "401 - unauthorized";
+      } else {
+        ctx.state.user = user;
+        await next();
+      }
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        ctx.status = 401;
+        return;
+      }
     }
-
-    ctx.state.user = user;
-
-    await next();
-  } catch (error) {
-    ctx.status = 401;
-    ctx.body = { message: "Invalid or expired token" };
-  }
-}
-
-export default authMiddleware;
+  };
+};

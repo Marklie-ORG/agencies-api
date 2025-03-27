@@ -5,6 +5,7 @@ import { ReportsController } from "./lib/controllers/ReportsController.js";
 import { ErrorMiddleware } from "./lib/middlewares/ErrorMiddleware.js";
 import { orm } from "./lib/db/config/DB.js";
 import { AuthController } from "./lib/controllers/AuthenticationController.js";
+import { AuthMiddleware } from "./lib/middlewares/AuthMiddleware.js";
 
 const app = new Koa();
 
@@ -13,9 +14,9 @@ await orm.connect().then(() => {
 });
 
 app.use(koabodyparser());
-app.use(ErrorMiddleware());
+app.use(AuthMiddleware());
 app.use(ValidationMiddleware());
-app.use(koabodyparser());
+app.use(ErrorMiddleware());
 app
   .use(new ReportsController().routes())
   .use(new ReportsController().allowedMethods());

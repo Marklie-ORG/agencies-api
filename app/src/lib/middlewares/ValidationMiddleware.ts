@@ -5,14 +5,7 @@ import { Validator } from "../utils/Validator.js";
 export const ValidationMiddleware = () => {
   return async (ctx: Context, next: Next) => {
     try {
-      if (ctx.method !== "GET") {
-        Validator.validateBody(ctx.request);
-      }
-      if (ctx.request.query) {
-        Validator.validateQuery(ctx.request);
-      }
-
-      Validator.validateUrl(ctx.request);
+      Validator.validateRequest(ctx);
 
       await next();
     } catch (e) {

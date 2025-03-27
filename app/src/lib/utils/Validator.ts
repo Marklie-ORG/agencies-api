@@ -1,64 +1,43 @@
-import type { RegistrationRequestBody } from "../interfaces/AuthInterfaces.js";
-import { z } from "zod";
-import type { Request } from "koa";
+import { ZodSchema } from "zod";
+import type { Context, Request } from "koa";
+import {
+  LoginRequestSchema,
+  RegistrationRequestSchema,
+  ReportsQueryParamsSchema,
+  ScheduleReportsRequestSchema,
+} from "../../schemas/ZodSchemas.js";
+
+const schemaMap: { [key: string]: ZodSchema<any> } = {
+  "/api/auth/register": RegistrationRequestSchema,
+  "/api/auth/login": LoginRequestSchema,
+  "/api/reports/schedule": ScheduleReportsRequestSchema,
+  "/api/reports/": ReportsQueryParamsSchema,
+};
 
 export class Validator {
-  public static validateRegistrationRequest(body: RegistrationRequestBody) {
-    const RegistrationRequestSchema = z.object({
-      email: z.string().email({ message: "Invalid email address" }),
-      password: z
-        .string()
-        .min(8, { message: "Password must be at least 8 characters long" }),
-      // firstName: z.string().min(8, { message: "Password must be at least 8 characters long" }),
-      // lastName: z.string().min(8, { message: "Password must be at least 8 characters long" }),
-    });
-
-    return RegistrationRequestSchema.parse(body);
-  }
-
-  public static validateReportsQueryParams(query: any) {
-    console.log(query);
-    const ReportsQueryParamsSchema = z.object({
-      datePreset: z.string().min(1, { message: "datePreset is required" }),
-      organizationName: z
-        .string()
-        .min(1, { message: "organizationName is required" }),
-    });
-
-    return ReportsQueryParamsSchema.parse(query);
-  }
-
-  public static validateUrlParams(params: any) {
-    const UrlParamsSchema = z.object({
-      id: z.string().min(1, { message: "ID is required" }),
-    });
-
-    return UrlParamsSchema.parse(params);
-  }
-
   public static validateBody(request: Request) {
-    switch (request.url) {
-      case "/register":
-        this.validateRegistrationRequest(
-          request.body as RegistrationRequestBody,
-        );
-        break;
+    const schema = schemaMap[request.url];
+    if (!schema) {
+      throw new Error(`No validation schema defined for URL ${request.url}`);
     }
+    schema.parse(request.body);
   }
 
   public static validateQuery(request: Request) {
-    switch (request.url) {
-      case "/api/reports":
-        this.validateReportsQueryParams(request.query);
-        break;
+    const schema = schemaMap[request.url];
+    if (!schema) {
+      throw new Error(`No validation schema defined for URL ${request.url}`);
     }
+    schema.parse(request.query);
   }
 
-  public static validateUrl(request: Request) {
-    switch (request.url) {
-      case "/users/:id":
-        // this.validateUrlParams(request.params);
-        break;
+  public static validateRequest(ctx: Context) {
+    if (ctx.request.method !== "GET") {
+      this.validateBody(ctx.request);
+    }
+
+    if (ctx.request.querystring.length > 0) {
+      this.validateQuery(ctx.request);
     }
   }
 }

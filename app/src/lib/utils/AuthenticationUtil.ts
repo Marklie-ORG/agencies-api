@@ -178,6 +178,7 @@ export class AuthenticationUtil {
   public static verifyTokenAndFetchUser(
     token: string,
   ): Promise<User | null | false> {
+    console.log("veryfing");
     return new Promise<User | null | false>((resolve, reject) => {
       jwt.verify(
         token,
