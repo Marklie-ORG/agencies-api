@@ -8,9 +8,8 @@ class SentrySingleton {
   private readonly tracesSampleRate: number;
 
   private constructor() {
-    this.dsn =
-      "https://65c305b8db1a44f3b3d7c243fa9c0498@o4509083503558656.ingest.de.sentry.io/4509083507884112";
-    this.environment = "development";
+    this.dsn = process.env.SENTRY_DSN as string;
+    this.environment = process.env.ENVIRONMENT as string;
     this.tracesSampleRate = 1.0;
     this.init();
   }
