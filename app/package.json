@@ -5,15 +5,16 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "npx swc --strip-leading-paths --config-file .swcrc ./src -d dist",
+    "build": "npx swc --strip-leading-paths --config-file .swcrc ./src -d dist && pnpm sentry:sourcemaps",
     "prettier:format": "pnpm exec prettier . --write",
     "prettier:check": "npx prettier . --check\n",
     "docker:up": "docker compose -f ../docker/compose.yaml up -d",
     "generate:dts": "tsc --emitDeclarationOnly --outDir dist",
     "build:all": "npm run build && npm run generate:dts",
-    "start": "node --env-file .env --experimental-specifier-resolution=node dist/index.js",
+    "start": "node --import ./dist/lib/utils/Sentry.js --env-file .env --experimental-specifier-resolution=node dist/index.js",
     "watch": "pnpm docker:up && npx nodemon --config ./nodemon.json",
-    "start:dev": "npm run watch"
+    "start:dev": "npm run watch",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org impressie --project reports ./dist && sentry-cli sourcemaps upload --org impressie --project reports ./dist"
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",
@@ -37,12 +38,14 @@
     "@types/koa-bodyparser": "^4.3.12",
     "@types/koa-router": "^7.4.4",
     "@types/koa__cors": "^5.0.0",
+    "@types/luxon": "^3.6.0",
     "@types/node": "^22.10.10",
     "koa": "^2.13.4",
     "koa-body": "^6.0.1",
     "koa-bodyparser": "^4.3.0",
     "koa-json": "^2.0.2",
     "koa-router": "^13.0.1",
+    "luxon": "^3.6.1",
     "prettier": "3.4.2",
     "typescript": "^5.7.3"
   }
