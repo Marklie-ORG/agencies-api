@@ -12,7 +12,7 @@ import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
 import { CookiesMiddleware } from "./lib/middlewares/CookiesMiddleware.js";
 import { UserController } from "./lib/controllers/UserController.js";
 import * as Sentry from "@sentry/node";
-
+import { Log } from "./lib/utils/Logger.js";
 
 const app = new Koa();
 Sentry.setupKoaErrorHandler(app);
