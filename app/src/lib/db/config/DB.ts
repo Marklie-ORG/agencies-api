@@ -13,10 +13,4 @@ export const orm = await MikroORM.init({
   password: process.env.DATABASE_PASSWORD || "password",
 });
 
-// // Create Schema Generator
-// const generator = orm.getSchemaGenerator();
-
-// // Update database schema
-// await generator.updateSchema();
-
 export const em = orm.em.fork() as EntityManager;
