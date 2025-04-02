@@ -9,7 +9,7 @@ export const AuthMiddleware: () => Application.Middleware<
   Application.DefaultContext
 > = (): Middleware => {
   return async (ctx: Context, next: Next) => {
-    const excludedEndpoints: string[] = ["/login", "/register"];
+    const excludedEndpoints: string[] = ["/login", "/register", "/refresh"];
     if (excludedEndpoints.some((endpoint) => ctx.path.includes(endpoint))) {
       await next();
       return;

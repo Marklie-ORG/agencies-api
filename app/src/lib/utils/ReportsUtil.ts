@@ -6,12 +6,13 @@ export class ReportsUtil {
 
   public static async getAllReportData(
     organizationName: string,
+    accountId: string,
     datePreset: string,
   ) {
-    const facebookApi = new FacebookReportsApi(organizationName);
+    const facebookApi = new FacebookReportsApi(organizationName, accountId);
 
     const [bestAds, KPIs, campaigns, graphs] = await Promise.all([
-      this.get10BestPerformingAds(facebookApi, organizationName, datePreset),
+      this.get10BestPerformingAds(facebookApi, organizationName, datePreset, accountId),
       facebookApi.getKpis(datePreset),
       facebookApi.getCampaigns(datePreset),
       facebookApi.getGraphs(datePreset),
@@ -24,6 +25,7 @@ export class ReportsUtil {
     facebookApi: FacebookReportsApi,
     organizationName: string,
     datePreset: string,
+    accountId: string,
   ) {
     const cacheKey = `bestAds:${organizationName}:${datePreset}`;
 
@@ -34,7 +36,7 @@ export class ReportsUtil {
 
     const data = await facebookApi.getAds(datePreset);
     const ads = data.data;
-    const bestAds = await this.processAds(ads, organizationName);
+    const bestAds = await this.processAds(ads, organizationName, accountId);
 
     await RedisClient.set(cacheKey, JSON.stringify(bestAds), this.CACHE_EXPIRY);
 
@@ -52,9 +54,9 @@ export class ReportsUtil {
       .slice(0, 10);
   }
 
-  private static async processAds(ads: any[], organizationName: string) {
+  private static async processAds(ads: any[], organizationName: string, accountId: string) {
     const shownAds = this.getBest10AdsByROAS(ads);
-    const facebookApi = new FacebookReportsApi(organizationName);
+    const facebookApi = new FacebookReportsApi(organizationName, accountId);
 
     const reportAds = shownAds.map((ad) => ({
       adCreativeId: ad.creative.id,
