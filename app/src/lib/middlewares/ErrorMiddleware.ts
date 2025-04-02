@@ -9,6 +9,7 @@ export const ErrorMiddleware = () => {
     try {
       await next();
     } catch (e) {
+      logger.catchError(e);
       if (e instanceof ZodError) {
         ctx.status = 400;
         ctx.body = {

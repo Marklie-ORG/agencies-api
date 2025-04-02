@@ -1,6 +1,9 @@
 import type { Context, Next } from "koa";
 import { ZodError } from "zod";
 import { Validator } from "../utils/Validator.js";
+import { Log } from "../utils/Logger.js";
+
+const logger: Log = Log.getInstance().extend("validation-middleware");
 
 export const ValidationMiddleware = () => {
   return async (ctx: Context, next: Next) => {
@@ -18,6 +21,7 @@ export const ValidationMiddleware = () => {
           })),
         };
       } else {
+        logger.catchError(e);
         ctx.status = 500;
         ctx.body = { message: (e as Error).message };
       }
