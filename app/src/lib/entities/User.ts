@@ -1,6 +1,7 @@
-import { Entity, Property, BeforeCreate } from "@mikro-orm/core";
+import { Entity, Property, BeforeCreate, ManyToOne } from "@mikro-orm/core";
 import bcrypt from "bcryptjs";
 import { BaseEntity } from "./BaseEntity.js";
+import { Organization } from "./Organization.js";
 
 @Entity()
 export class User extends BaseEntity {
@@ -15,6 +16,9 @@ export class User extends BaseEntity {
 
   @Property()
   password!: string;
+
+  @ManyToOne(() => Organization, { nullable: true })
+  activeOrganization?: Organization;
 
   @BeforeCreate()
   async hashPassword() {

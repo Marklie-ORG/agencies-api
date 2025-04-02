@@ -10,6 +10,8 @@ import { OrganizationRole } from "../enums/enums.js";
 import type { User } from "../entities/User.js";
 import { ReportsUtil } from "../utils/ReportsUtil.js";
 import { FacebookDataUtil } from "../utils/FacebookDataUtil.js";
+import type { Job } from "bullmq";
+import { queue } from "../classes/BullMQWrapper.js";
 
 export class ReportsController extends Router {
   constructor() {
@@ -43,7 +45,7 @@ export class ReportsController extends Router {
     const scheduleOption: ReportScheduleRequest = ctx.request
       .body as ReportScheduleRequest;
     const user: User = ctx.state.user as User;
-    console.log(user);
+
     const schedule = new SchedulingOption();
 
     const cronExpression =
@@ -56,17 +58,17 @@ export class ReportsController extends Router {
       scheduleOption.clientUuid,
     );
 
-    // const job: Job = await queue.addScheduledJob(
-    //   "user.organization",
-    //   {},
-    //   cronExpression,
-    // );
+    const job: Job = await queue.addScheduledJob(
+      `report-schedule:org:${user.activeOrganization}:client:${scheduleOption.clientUuid}:${scheduleOption.frequency}`,
+      { ...scheduleOption },
+      cronExpression,
+    );
 
-    schedule.reportType = "defaultReport";
+    schedule.reportType = scheduleOption.frequency;
     schedule.jobData = scheduleOption as any;
     schedule.timezone = "UTC";
     schedule.datePreset = scheduleOption.datePreset;
-    // schedule.bullJobId = job.id as string;
+    schedule.bullJobId = job.id as string;
     schedule.nextRun = ReportsUtil.getNextRunDate(scheduleOption).toJSDate();
 
     await em.persistAndFlush(schedule);
