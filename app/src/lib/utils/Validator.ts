@@ -5,28 +5,41 @@ import {
   RegistrationRequestSchema,
   ReportsQueryParamsSchema,
   ScheduleReportsRequestSchema,
+  AdAccountsBusinessesRequestSchema,
+  RefreshRequestSchema,
 } from "../../schemas/ZodSchemas.js";
 
 const schemaMap: { [key: string]: ZodSchema<any> } = {
   "/api/auth/register": RegistrationRequestSchema,
   "/api/auth/login": LoginRequestSchema,
+  "/api/auth/refresh": RefreshRequestSchema,
+
   "/api/reports/schedule": ScheduleReportsRequestSchema,
   "/api/reports/": ReportsQueryParamsSchema,
+
+  "/api/ad-accounts/businesses": AdAccountsBusinessesRequestSchema,
 };
 
 export class Validator {
+  private static getPathFromUrl(url: string): string {
+    // Remove query parameters from URL
+    return url.split('?')[0];
+  }
+
   public static validateBody(request: Request) {
-    const schema = schemaMap[request.url];
+    const path = this.getPathFromUrl(request.url);
+    const schema = schemaMap[path];
     if (!schema) {
-      throw new Error(`No validation schema defined for URL ${request.url}`);
+      throw new Error(`No validation schema defined for URL ${path}`);
     }
     schema.parse(request.body);
   }
 
   public static validateQuery(request: Request) {
-    const schema = schemaMap[request.url];
+    const path = this.getPathFromUrl(request.url);
+    const schema = schemaMap[path];
     if (!schema) {
-      throw new Error(`No validation schema defined for URL ${request.url}`);
+      throw new Error(`No validation schema defined for URL ${path}`);
     }
     schema.parse(request.query);
   }
