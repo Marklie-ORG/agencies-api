@@ -1,3 +1,4 @@
+import "./lib/utils/Sentry.js";
 import Koa from "koa";
 import koabodyparser from "koa-bodyparser";
 import cors from "@koa/cors";
@@ -8,11 +9,16 @@ import { orm } from "./lib/db/config/DB.js";
 import { AuthController } from "./lib/controllers/AuthenticationController.js";
 import { AuthMiddleware } from "./lib/middlewares/AuthMiddleware.js";
 import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
+import * as Sentry from "@sentry/node";
+import { Log } from "./lib/utils/Logger.js";
 
 const app = new Koa();
+Sentry.setupKoaErrorHandler(app);
+
+const logger: Log = Log.getInstance().extend("service");
 
 await orm.connect().then(() => {
-  console.log("Database has connected!");
+  logger.info("Database has connected!");
 });
 
 app.use(
@@ -39,5 +45,5 @@ app
   .use(new AdAccountsController().allowedMethods());
 
 app.listen(3000, () => {
-  console.log(`Auth server is running at ${3000}`);
+  logger.info(`Auth server is running at ${3000}`);
 });
