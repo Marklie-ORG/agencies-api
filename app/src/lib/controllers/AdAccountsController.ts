@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import { FacebookApi } from "lib/apis/FacebookApi.js";
+// import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { FacebookApiUtil } from "lib/utils/FacebookApiUtil.js";
 
 const root = {
@@ -1414,12 +1414,11 @@ export class AdAccountsController extends Router {
 
   private async getAdAccounts(ctx: Context) {
     try {
-        const organizationName = ctx.query.organizationName as string;
+        // const organizationName = ctx.query.organizationName as string;
+        // const facebookApi = new FacebookApi(organizationName);
+        // const response = await facebookApi.getBusinesses();
 
-        const facebookApi = new FacebookApi(organizationName);
-
-        const response = await facebookApi.getBusinesses();
-        // const response = root;
+        const response = root;
 
         const hierarchy = FacebookApiUtil.extractAccountHierarchy(response);
 

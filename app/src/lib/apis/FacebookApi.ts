@@ -6,7 +6,7 @@ export class FacebookApi {
 
   constructor(private organizationName: string) {
     this.FACEBOOK_ACCESS_TOKEN =
-      this.getOrganizationAccessToken(organizationName);
+      this.getOrganizationAccessToken(this.organizationName);
     this.api = axios.create({
       baseURL: "https://graph.facebook.com/v22.0",
       headers: { "Content-Type": "application/json" },

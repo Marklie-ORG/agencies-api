@@ -25,10 +25,11 @@ export class ReportsController extends Router {
   }
 
   private async getReport(ctx: Context) {
-    const datePreset = ctx.query.datePreset as string;
     const organizationName = ctx.query.organizationName as string;
+    const accountId = ctx.query.accountId as string;
+    const datePreset = ctx.query.datePreset as string;
 
-    ctx.body = await ReportsUtil.getAllReportData(organizationName, datePreset);
+    ctx.body = await ReportsUtil.getAllReportData(organizationName,accountId, datePreset);
     ctx.status = 200;
   }
 
