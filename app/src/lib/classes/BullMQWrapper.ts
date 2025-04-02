@@ -1,6 +1,9 @@
 import { Queue, Worker, Job, JobScheduler } from "bullmq";
 import type Redis from "ioredis";
 import redis from "../db/redis/Redis.js";
+import { Log } from "../utils/Logger.js";
+
+const logger: Log = Log.getInstance().extend("service");
 
 export class BullMQWrapper {
   private queue: Queue;
@@ -19,7 +22,7 @@ export class BullMQWrapper {
     );
 
     this.worker.on("failed", (job, err) => {
-      console.error(`Job ${(job as Job).id} failed: ${err.message}`);
+      logger.error(`Job ${(job as Job).id} failed: ${err.message}`);
     });
   }
 
