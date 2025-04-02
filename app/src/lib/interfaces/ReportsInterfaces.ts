@@ -1,3 +1,5 @@
+import type { FACEBOOK_DATE_PRESETS } from "../enums/enums.js";
+
 export type ScheduleFrequency =
   | "weekly"
   | "biweekly"
@@ -8,6 +10,7 @@ export type ScheduleFrequency =
 interface BaseSchedule {
   frequency: string;
   clientUuid: string;
+  datePreset: FACEBOOK_DATE_PRESETS;
 }
 
 interface TimeBasedSchedule extends BaseSchedule {
@@ -52,6 +55,7 @@ export interface CronSchedule extends ScheduleModifiers {
   frequency: "cron";
   cronExpression: string;
   clientUuid: string;
+  datePreset: FACEBOOK_DATE_PRESETS;
 }
 
 export type ReportScheduleRequest =

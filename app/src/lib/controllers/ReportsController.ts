@@ -1,6 +1,5 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import { ReportsUtil } from "../utils/ReportsUtil.js";
 import { SchedulingOption } from "../entities/SchedulingOption.js";
 import type { ReportScheduleRequest } from "../interfaces/ReportsInterfaces.js";
 import { CronUtil } from "../utils/CronUtil.js";
@@ -8,6 +7,9 @@ import { OrganizationClient } from "../entities/OrganizationClient.js";
 import { em } from "../db/config/DB.js";
 import { roleMiddleware } from "../middlewares/RolesMiddleware.js";
 import { OrganizationRole } from "../enums/enums.js";
+import type { User } from "../entities/User.js";
+import { ReportsUtil } from "../utils/ReportsUtil.js";
+import { FacebookDataUtil } from "../utils/FacebookDataUtil.js";
 
 export class ReportsController extends Router {
   constructor() {
@@ -29,14 +31,19 @@ export class ReportsController extends Router {
     const accountId = ctx.query.accountId as string;
     const datePreset = ctx.query.datePreset as string;
 
-    ctx.body = await ReportsUtil.getAllReportData(organizationName,accountId, datePreset);
+    ctx.body = await FacebookDataUtil.getAllReportData(
+      organizationName,
+      accountId,
+      datePreset,
+    );
     ctx.status = 200;
   }
 
   private async scheduleReports(ctx: Context) {
     const scheduleOption: ReportScheduleRequest = ctx.request
       .body as ReportScheduleRequest;
-
+    const user: User = ctx.state.user as User;
+    console.log(user);
     const schedule = new SchedulingOption();
 
     const cronExpression =
@@ -49,12 +56,19 @@ export class ReportsController extends Router {
       scheduleOption.clientUuid,
     );
 
+    // const job: Job = await queue.addScheduledJob(
+    //   "user.organization",
+    //   {},
+    //   cronExpression,
+    // );
+
     schedule.reportType = "defaultReport";
     schedule.jobData = scheduleOption as any;
     schedule.timezone = "UTC";
+    schedule.datePreset = scheduleOption.datePreset;
+    // schedule.bullJobId = job.id as string;
+    schedule.nextRun = ReportsUtil.getNextRunDate(scheduleOption).toJSDate();
 
-    // await queue.addScheduledJob("user.organization", {}, cronExpression);
-    //
     await em.persistAndFlush(schedule);
 
     ctx.body = {

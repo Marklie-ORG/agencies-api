@@ -17,25 +17,21 @@ export const AuthMiddleware: () => Application.Middleware<
     const token: string = ctx.get("Authorization").split(" ")[1];
 
     if (!token) {
-      ctx.status = 401;
-      console.log("No token provided");
-      return;
+      ctx.throw(401, "No token provided");
     }
 
     try {
       const user: User | null =
         await AuthenticationUtil.fetchUserWithTokenInfo(token);
       if (!token || !user) {
-        ctx.status = 401;
-        ctx.body = "401 - unauthorized";
+        ctx.throw(401, "Unauthorized");
       } else {
         ctx.state.user = user;
         await next();
       }
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        ctx.status = 401;
-        return;
+        ctx.throw(401, "Token expired.");
       }
     }
   };

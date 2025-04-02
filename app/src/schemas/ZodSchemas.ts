@@ -16,8 +16,7 @@ export const LoginRequestSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
-export const RefreshRequestSchema = z.object({
-});
+export const RefreshRequestSchema = z.object({});
 
 export const ScheduleReportsRequestSchema = z.object({
   frequency: z.enum(["weekly", "biweekly", "monthly", "custom", "cron"], {
@@ -36,7 +35,6 @@ export const ScheduleReportsRequestSchema = z.object({
       "Sunday",
     ])
     .optional(),
-
   dayOfMonth: z.number().min(1).max(31).optional(),
 
   intervalDays: z.number().optional(),
