@@ -8,6 +8,8 @@ import { orm } from "./lib/db/config/DB.js";
 import { AuthController } from "./lib/controllers/AuthenticationController.js";
 import { AuthMiddleware } from "./lib/middlewares/AuthMiddleware.js";
 import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
+import { CookiesMiddleware } from "./lib/middlewares/CookiesMiddleware.js";
+import { UserController } from "./lib/controllers/UserController.js";
 
 const app = new Koa();
 
@@ -22,19 +24,23 @@ app.use(
   }),
 );
 app.use(koabodyparser());
+app.use(CookiesMiddleware);
 app.use(AuthMiddleware());
 app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
 app
   .use(new ReportsController().routes())
-  .use(new ReportsController().allowedMethods())
+  .use(new ReportsController().allowedMethods());
 
-  .use(new AdAccountsController().routes())
-  .use(new AdAccountsController().allowedMethods());
+app
+  .use(new UserController().routes())
+  .use(new UserController().allowedMethods());
+
 app
   .use(new AuthController().routes())
-  .use(new AuthController().allowedMethods())
+  .use(new AuthController().allowedMethods());
 
+app
   .use(new AdAccountsController().routes())
   .use(new AdAccountsController().allowedMethods());
 

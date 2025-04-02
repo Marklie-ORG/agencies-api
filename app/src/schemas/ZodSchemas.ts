@@ -16,6 +16,12 @@ export const LoginRequestSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
+export const SetActiveOrganizationSchema = z.object({
+  activeOrganizationUuid: z
+    .string()
+    .uuid({ message: "Invalid organization UUID." }),
+});
+
 export const RefreshRequestSchema = z.object({});
 
 export const ScheduleReportsRequestSchema = z.object({

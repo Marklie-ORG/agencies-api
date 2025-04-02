@@ -29,3 +29,13 @@ export interface OrganizationRoles {
   role: OrganizationRole | undefined;
   organizationUuid: string;
 }
+
+export interface CookieOptions {
+  maxAge?: number;
+  expires?: Date;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: boolean | "lax" | "strict" | "none";
+  domain?: string | undefined;
+  path?: string;
+}
