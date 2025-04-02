@@ -7,6 +7,8 @@ import type {
 import type { User } from "../entities/User.js";
 import { AuthenticationUtil } from "../utils/AuthenticationUtil.js";
 
+const refreshTokenMaxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 export class AuthController extends Router {
   constructor() {
     super({ prefix: "/api/auth" });
@@ -17,7 +19,7 @@ export class AuthController extends Router {
     this.post("/login", this.login);
     this.post("/register", this.registration);
     this.get("/me", this.me);
-    this.get("/refresh/:refreshToken", this.refresh);
+    this.post("/refresh", this.refresh);
   }
 
   private async me(ctx: Context) {
@@ -29,12 +31,30 @@ export class AuthController extends Router {
 
   private async login(ctx: Context) {
     const body: LoginRequestBody = ctx.request.body as LoginRequestBody;
-    ctx.body = await AuthenticationUtil.login(body);
+    const { accessToken, refreshToken } = await AuthenticationUtil.login(body);
+    
+    // Set refresh token as HTTP-only cookie
+    ctx.cookies.set('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: refreshTokenMaxAge,
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
+    });
+
+    ctx.body = { accessToken };
     ctx.status = 200;
   }
 
   private async refresh(ctx: Context) {
-    const { refreshToken } = ctx.params;
+    const refreshToken = ctx.cookies.get('refreshToken');
+
+    if (!refreshToken) {
+      ctx.status = 401;
+      ctx.body = { error: 'No refresh token provided' };
+      return;
+    }
 
     const token: string | false | null =
       await AuthenticationUtil.verifyRefreshToken(refreshToken);
@@ -46,9 +66,19 @@ export class AuthController extends Router {
     const body: RegistrationRequestBody = ctx.request
       .body as RegistrationRequestBody;
 
-    await AuthenticationUtil.register(body);
+    const { accessToken, refreshToken } = await AuthenticationUtil.register(body);
+    
+    // Set refresh token as HTTP-only cookie
+    ctx.cookies.set('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: refreshTokenMaxAge,
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
+    });
 
-    ctx.body = "Success";
+    ctx.body = { accessToken };
     ctx.status = 201;
   }
 }

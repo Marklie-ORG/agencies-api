@@ -46,18 +46,24 @@ export class AuthenticationUtil {
         this.REFRESH_SECRET,
         async (
           err: VerifyErrors | null,
-          user: JwtPayload | string | undefined,
+          decoded: JwtPayload | string | undefined,
         ) => {
           if (err) {
             reject(err);
+            return;
           }
 
-          if (user === undefined) {
+          if (!decoded || typeof decoded === 'string') {
             resolve(null);
             return;
           }
 
-          const newAccessToken = this.signAccessToken(user as CleanedUser);
+          // Create a new access token with the same user data
+          const newAccessToken = this.signAccessToken({
+            uuid: decoded.uuid,
+            email: decoded.email,
+            roles: decoded.roles
+          });
 
           resolve(newAccessToken);
         },
@@ -104,13 +110,23 @@ export class AuthenticationUtil {
   }
 
   public static signAccessToken(cleanedUser: CleanedUser) {
-    return jwt.sign(cleanedUser, this.ACCESS_SECRET, {
-      expiresIn: TokenExpiration.ACCESS,
+    const payload = {
+      ...cleanedUser,
+      iat: Math.floor(Date.now() / 1000)
+    };
+    return jwt.sign(payload, this.ACCESS_SECRET, {
+      expiresIn: TokenExpiration.ACCESS
     });
   }
 
-  public static singRefreshToken(cleanedUser: CleanedUser) {
-    return jwt.sign(cleanedUser, this.REFRESH_SECRET);
+  public static signRefreshToken(cleanedUser: CleanedUser) {
+    const payload = {
+      ...cleanedUser,
+      iat: Math.floor(Date.now() / 1000)
+    };
+    return jwt.sign(payload, this.REFRESH_SECRET, {
+      expiresIn: TokenExpiration.REFRESH
+    });
   }
 
   private static async comparePasswords(password: string, hash: string) {
@@ -125,7 +141,7 @@ export class AuthenticationUtil {
     } as CleanedUser;
 
     const accessToken: string = this.signAccessToken(cleanedUser);
-    const refreshToken: string = this.singRefreshToken(cleanedUser);
+    const refreshToken: string = this.signRefreshToken(cleanedUser);
 
     return { accessToken, refreshToken };
   }

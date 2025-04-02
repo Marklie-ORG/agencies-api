@@ -16,6 +16,9 @@ export const LoginRequestSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
+export const RefreshRequestSchema = z.object({
+});
+
 export const ScheduleReportsRequestSchema = z.object({
   frequency: z.enum(["weekly", "biweekly", "monthly", "custom", "cron"], {
     errorMap: () => ({ message: "Invalid frequency type" }),
@@ -53,4 +56,10 @@ export const ReportsQueryParamsSchema = z.object({
 
 export const UrlParamsSchema = z.object({
   uuid: z.string().min(1, { message: "UUID is required" }),
+});
+
+export const AdAccountsBusinessesRequestSchema = z.object({
+  organizationName: z
+    .string()
+    .min(1, { message: "organizationName is required" }),
 });
