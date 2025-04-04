@@ -2,6 +2,8 @@ import { Queue, Worker, Job, JobScheduler } from "bullmq";
 import type Redis from "ioredis";
 import redis from "../db/redis/Redis.js";
 import { Log } from "../utils/Logger.js";
+import type { ReportJobData } from "../interfaces/ReportsInterfaces.js";
+import { ReportsUtil } from "../utils/ReportsUtil.js";
 
 const logger: Log = Log.getInstance().extend("service");
 
@@ -27,8 +29,12 @@ export class BullMQWrapper {
   }
 
   private async processJob(job: Job): Promise<any> {
-    console.log(`Processing job ${job.id} with data:`, job.data);
-    return { success: true };
+    logger.info(
+      `Processing job ${job.id} with data: ` + JSON.stringify(job.data),
+    );
+    const data: ReportJobData = await job.data();
+
+    await ReportsUtil.processScheduledReportJob(data);
   }
 
   public async addScheduledJob(
@@ -36,7 +42,6 @@ export class BullMQWrapper {
     data: any,
     cron: string,
   ): Promise<Job> {
-    // await this.queue.upsertJobScheduler(jobName, { pattern: cron }, data);
     return await this.queue.add(jobName, data, { repeat: { pattern: cron } });
   }
 
