@@ -5,43 +5,39 @@ export class FacebookDataUtil {
   private static CACHE_EXPIRY = 3600;
 
   public static async getAllReportData(
-    organizationName: string,
+    organizationUuid: string,
     accountId: string,
     datePreset: string,
   ) {
-    const facebookApi = new FacebookReportsApi(organizationName, accountId);
+    const api = await FacebookReportsApi.create(organizationUuid, accountId);
 
     const [bestAds, KPIs, campaigns, graphs] = await Promise.all([
-      this.get10BestPerformingAds(
-        facebookApi,
-        organizationName,
-        datePreset,
-        accountId,
-      ),
-      facebookApi.getKpis(datePreset),
-      facebookApi.getCampaigns(datePreset),
-      facebookApi.getGraphs(datePreset),
+      this.get10BestPerformingAds(organizationUuid, accountId, datePreset),
+      await api.getKpis(datePreset),
+      await api.getCampaigns(datePreset),
+      await api.getGraphs(datePreset),
     ]);
 
     return { bestAds, KPIs, campaigns, graphs };
   }
 
   private static async get10BestPerformingAds(
-    facebookApi: FacebookReportsApi,
-    organizationName: string,
+    organizationUuid: string,
     datePreset: string,
     accountId: string,
   ) {
-    const cacheKey = `bestAds:${organizationName}:${datePreset}`;
+    const cacheKey = `bestAds:${organizationUuid}:${datePreset}`;
 
     const cachedData = await RedisClient.get(cacheKey);
     if (cachedData) {
       return JSON.parse(cachedData);
     }
 
-    const data = await facebookApi.getAds(datePreset);
+    const api = await FacebookReportsApi.create(organizationUuid, accountId);
+
+    const data = await api.getAds(datePreset);
     const ads = data.data;
-    const bestAds = await this.processAds(ads, organizationName, accountId);
+    const bestAds = await this.processAds(ads, organizationUuid, accountId);
 
     await RedisClient.set(cacheKey, JSON.stringify(bestAds), this.CACHE_EXPIRY);
 
@@ -61,11 +57,10 @@ export class FacebookDataUtil {
 
   private static async processAds(
     ads: any[],
-    organizationName: string,
+    organizationUuid: string,
     accountId: string,
   ) {
     const shownAds = this.getBest10AdsByROAS(ads);
-    const facebookApi = new FacebookReportsApi(organizationName, accountId);
 
     const reportAds = shownAds.map((ad) => ({
       adCreativeId: ad.creative.id,
@@ -93,7 +88,12 @@ export class FacebookDataUtil {
           return JSON.parse(cachedData);
         }
 
-        const creativeAsset = await facebookApi.getCreativeAsset(creativeId);
+        const api = await FacebookReportsApi.create(
+          organizationUuid,
+          accountId,
+        );
+
+        const creativeAsset = await api.getCreativeAsset(creativeId);
 
         await RedisClient.set(
           cacheKey,
@@ -119,9 +119,12 @@ export class FacebookDataUtil {
           if (cachedData) {
             igMedia = JSON.parse(cachedData);
           } else {
-            igMedia = await facebookApi.getIgMedia(
-              effective_instagram_media_id,
+            const api = await FacebookReportsApi.create(
+              organizationUuid,
+              accountId,
             );
+
+            igMedia = await api.getIgMedia(effective_instagram_media_id);
 
             await RedisClient.set(
               cacheKey,
@@ -144,7 +147,12 @@ export class FacebookDataUtil {
           if (cachedData) {
             post = JSON.parse(cachedData);
           } else {
-            post = await facebookApi.getPost(postId);
+            const api = await FacebookReportsApi.create(
+              organizationUuid,
+              accountId,
+            );
+
+            post = await api.getPost(postId);
 
             await RedisClient.set(
               cacheKey,

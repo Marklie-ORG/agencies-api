@@ -29,12 +29,12 @@ export class ReportsController extends Router {
   }
 
   private async getReport(ctx: Context) {
-    const organizationName = ctx.query.organizationName as string;
+    const organizationUuid = ctx.query.organizationUuid as string;
     const accountId = ctx.query.accountId as string;
     const datePreset = ctx.query.datePreset as string;
 
     ctx.body = await FacebookDataUtil.getAllReportData(
-      organizationName,
+      organizationUuid,
       accountId,
       datePreset,
     );
@@ -58,12 +58,22 @@ export class ReportsController extends Router {
       scheduleOption.clientUuid,
     );
 
+    const client = await em.findOne(OrganizationClient, {
+      uuid: scheduleOption.clientUuid,
+    });
+
     const job: Job = await queue.addScheduledJob(
       `report-schedule:org:${user.activeOrganization}:client:${scheduleOption.clientUuid}:${scheduleOption.frequency}`,
-      { ...scheduleOption },
+      {
+        ...scheduleOption,
+        organizationUuid: user.activeOrganization?.uuid,
+        accountId: client?.name,
+        reviewNeeded: scheduleOption.reviewNeeded,
+      },
       cronExpression,
     );
 
+    //todo: add timezones
     schedule.reportType = scheduleOption.frequency;
     schedule.jobData = scheduleOption as any;
     schedule.timezone = "UTC";

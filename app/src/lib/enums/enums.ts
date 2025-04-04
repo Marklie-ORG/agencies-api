@@ -22,7 +22,18 @@ export enum OrganizationRole {
   READER = "reader",
 }
 
+export enum OrganizationTokenType {
+  FACEBOOK = "facebook",
+  TIKTOK = "tiktok",
+}
+
 export enum TokenExpiration {
   ACCESS = 60 * 60,
   REFRESH = 356 * 24 * 60 * 60,
+}
+
+export enum CommunicationChannelType {
+  EMAIL = "email",
+  SLACK = "slack",
+  WHATSAPP = "whatsapp",
 }

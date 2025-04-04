@@ -10,6 +10,7 @@ export type ScheduleFrequency =
 interface BaseSchedule {
   frequency: string;
   clientUuid: string;
+  reviewNeeded: boolean;
   datePreset: FACEBOOK_DATE_PRESETS;
 }
 
@@ -55,6 +56,7 @@ export interface CronSchedule extends ScheduleModifiers {
   frequency: "cron";
   cronExpression: string;
   clientUuid: string;
+  reviewNeeded: boolean;
   datePreset: FACEBOOK_DATE_PRESETS;
 }
 
@@ -64,3 +66,11 @@ export type ReportScheduleRequest =
   | MonthlySchedule
   | CustomSchedule
   | CronSchedule;
+
+export interface ReportJobData {
+  clientUuid: string;
+  organizationUuid: string;
+  reviewNeeded: boolean;
+  accountId: string;
+  dataPreset: FACEBOOK_DATE_PRESETS;
+}
