@@ -1,59 +1,57 @@
 import axios, { type AxiosInstance } from "axios";
+import { OrganizationTokenType } from "../enums/enums.js";
+import { OrganizationToken } from "../entities/OrganizationToken.js";
+import { em } from "../db/config/DB.js";
 
 export class FacebookApi {
-  private api: AxiosInstance;
-  private readonly FACEBOOK_ACCESS_TOKEN: string;
+  private constructor(private api: AxiosInstance) {}
 
-  constructor(private organizationName: string) {
-    this.FACEBOOK_ACCESS_TOKEN =
-      this.getOrganizationAccessToken(this.organizationName);
-    this.api = axios.create({
-      baseURL: "https://graph.facebook.com/v22.0",
-      headers: { "Content-Type": "application/json" },
+  public static async create(
+    organizationUuid: string,
+    accountId: string,
+  ): Promise<FacebookApi> {
+    const tokenRecord = await em.findOne(OrganizationToken, {
+      organization: organizationUuid,
+      type: OrganizationTokenType.FACEBOOK,
     });
-    this.api.interceptors.request.use((config) => {
-      config.params = {
-        ...config.params,
-        access_token: this.FACEBOOK_ACCESS_TOKEN,
-      };
-      return config;
+
+    if (!tokenRecord) {
+      throw new Error(
+        `Access token not found for organization ${organizationUuid}`,
+      );
+    }
+
+    const api = axios.create({
+      baseURL: `https://graph.facebook.com/v22.0/${accountId}`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: {
+        access_token: tokenRecord.token,
+      },
     });
+
+    return new FacebookApi(api);
   }
 
-  private getOrganizationAccessToken(organizationName: string): string {
-    switch (organizationName) {
-      case "test":
-        return process.env.FACEBOOK_ACCESS_TOKEN as string;
-      default:
-        throw new Error("Invalid organization");
-    }
-  }
+  public async getMe(): Promise<{ id: string; name: string }> {
+    const response = await this.api.get("/me", {
+      params: {
+        fields: "id,name",
+      },
+    });
 
-  public async getMe(): Promise<{id: string, name: string}> {
-    try {
-      const response = await this.api.get<{id: string, name: string}>(`/me`, {
-        params: {
-          fields: "id,name",
-          access_token: this.FACEBOOK_ACCESS_TOKEN
-        },
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    return response.data;
   }
 
   public async getBusinesses() {
-    try {
-      const response = await this.api.get(`/me/businesses`, {
-        params: {
-          fields: "id,name,owned_ad_accounts{id,name,account_status},client_ad_accounts{id,name,account_status}",
-        },
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
+    const response = await this.api.get(`/me/businesses`, {
+      params: {
+        fields:
+          "id,name,owned_ad_accounts{id,name,account_status},client_ad_accounts{id,name,account_status}",
+      },
+    });
 
+    return response.data;
+  }
 }

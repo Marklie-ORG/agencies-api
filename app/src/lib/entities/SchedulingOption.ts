@@ -23,6 +23,9 @@ export class SchedulingOption extends BaseEntity {
   @Property({ nullable: true })
   timezone?: string;
 
+  @Property()
+  reviewNeeded: boolean = false;
+
   @Property({ nullable: true })
   lastRun?: Date;
 

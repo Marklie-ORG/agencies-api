@@ -5,8 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "npx swc --strip-leading-paths --config-file .swcrc ./src -d dist && pnpm sentry:sourcemaps",
-    "prettier:format": "pnpm exec prettier . --write",
+    "build": "npx swc --strip-leading-paths --config-file .swcrc ./src -d dist && if [ \"$NODE_ENV\" = \"production\" ]; then pnpm sentry:sourcemaps; fi",    "prettier:format": "pnpm exec prettier . --write",
     "prettier:check": "npx prettier . --check\n",
     "docker:up": "docker compose -f ../docker/compose.yaml up -d",
     "generate:dts": "tsc --emitDeclarationOnly --outDir dist",

@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import * as crypto from "crypto";
 import { createLogger, format, transports, Logger } from "winston";
-import { sentry } from "./Sentry.js";
+// import { sentry } from "./Sentry.js";
 
 export class Log {
   private static instance: Log | null = null;
@@ -58,7 +58,7 @@ export class Log {
   }
 
   public error(message: unknown, error?: unknown): void {
-    sentry.captureException(error as Error);
+    // sentry.captureException(error as Error);
 
     if (typeof message === "string") {
       this.logger.error(message, error, {
@@ -81,7 +81,7 @@ export class Log {
     if (!error) {
       return;
     }
-    sentry.captureException(error as Error);
+    // sentry.captureException(error as Error);
 
     if (isAxiosError(error)) {
       this.error(error.toJSON());
