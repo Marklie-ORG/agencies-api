@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+
+
+use koa and mikro orm stack
+
+when making new endpoint, always make only request zod schema for it [ZodSchemas.ts](mdc:reports-api/reports-api/reports-api/app/src/schemas/ZodSchemas.ts) and implement the zod schema into validator [Validator.ts](mdc:reports-api/reports-api/reports-api/app/src/lib/utils/Validator.ts)
+
+when importing files, pay attention to add ".js" where needed

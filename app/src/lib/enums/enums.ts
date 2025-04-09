@@ -37,3 +37,8 @@ export enum CommunicationChannelType {
   SLACK = "slack",
   WHATSAPP = "whatsapp",
 }
+
+export enum Platform {
+  FACEBOOK = "facebook",
+  TIKTOK = "tiktok",
+}

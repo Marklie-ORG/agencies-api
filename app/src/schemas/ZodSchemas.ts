@@ -1,3 +1,4 @@
+import { Platform } from "lib/enums/enums.js";
 import { z } from "zod";
 
 export const RegistrationRequestSchema = z.object({
@@ -5,8 +6,8 @@ export const RegistrationRequestSchema = z.object({
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long" }),
-  firstName: z.string(),
-  lastName: z.string(),
+  // firstName: z.string(),
+  // lastName: z.string(),
 });
 
 export const LoginRequestSchema = z.object({
@@ -66,4 +67,13 @@ export const AdAccountsBusinessesRequestSchema = z.object({
   organizationName: z
     .string()
     .min(1, { message: "organizationName is required" }),
+});
+
+export const CreateClientRequestSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
+  connectedPlatforms: z.array(z.nativeEnum(Platform)).min(1, { message: "At least one platform must be connected" }),
+});
+
+export const CompleteStepParamsSchema = z.object({
+  stepId: z.string().uuid({ message: "Invalid step UUID" }),
 });

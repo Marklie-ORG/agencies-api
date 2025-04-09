@@ -8,11 +8,14 @@ import {
 import { BaseEntity } from "./BaseEntity.js";
 import { Organization } from "./Organization.js";
 import { SchedulingOption } from "./SchedulingOption.js";
-
+import { Platform } from "../enums/enums.js";
 @Entity()
 export class OrganizationClient extends BaseEntity {
   @Property()
   name!: string;
+
+  @Property({ type: 'array' })
+  connectedPlatforms: Platform[] = [];
 
   @ManyToOne(() => Organization)
   organization!: Organization;

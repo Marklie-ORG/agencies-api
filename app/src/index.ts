@@ -16,6 +16,8 @@ import { Log } from "./lib/utils/Logger.js";
 import { OrganizationToken } from "./lib/entities/OrganizationToken.js";
 import { Organization } from "./lib/entities/Organization.js";
 import { OrganizationTokenType } from "./lib/enums/enums.js";
+import { ClientsController } from "lib/controllers/ClientsController.js";
+import { OnboardingController } from "./lib/controllers/OnboardingController.js";
 
 const app = new Koa();
 Sentry.setupKoaErrorHandler(app);
@@ -26,6 +28,8 @@ await orm.connect().then(() => {
   logger.info("Database has connected!");
 });
 
+await orm.schema.updateSchema();
+
 app.use(
   cors({
     origin: "http://localhost:4200",
@@ -35,6 +39,7 @@ app.use(
 app.use(koabodyparser());
 app.use(CookiesMiddleware);
 app.use(AuthMiddleware());
+app.use(CookiesMiddleware);
 app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
 app
@@ -46,12 +51,19 @@ app
   .use(new UserController().allowedMethods());
 
 app
+  .use(new AdAccountsController().routes())
+  .use(new AdAccountsController().allowedMethods())
+  
   .use(new AuthController().routes())
   .use(new AuthController().allowedMethods());
 
 app
-  .use(new AdAccountsController().routes())
-  .use(new AdAccountsController().allowedMethods());
+  .use(new ClientsController().routes())
+  .use(new ClientsController().allowedMethods());
+
+app
+  .use(new OnboardingController().routes())
+  .use(new OnboardingController().allowedMethods());
 
 app.listen(3000, () => {
   logger.info(`Auth server is running at ${3000}`);

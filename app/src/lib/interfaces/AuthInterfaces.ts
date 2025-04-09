@@ -3,8 +3,6 @@ import type { OrganizationRole } from "../enums/enums.js";
 export interface RegistrationRequestBody {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
 }
 
 export interface LoginRequestBody {

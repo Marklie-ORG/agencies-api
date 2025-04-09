@@ -5,11 +5,11 @@ import { Organization } from "./Organization.js";
 
 @Entity()
 export class User extends BaseEntity {
-  @Property()
-  firstName!: string;
+  @Property({ nullable: true })
+  firstName?: string;
 
-  @Property()
-  lastName!: string;
+  @Property({ nullable: true })
+  lastName?: string;
 
   @Property({ unique: true })
   email!: string;

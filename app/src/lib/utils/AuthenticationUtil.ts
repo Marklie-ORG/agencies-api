@@ -29,8 +29,8 @@ export class AuthenticationUtil {
 
     const newUser: User = new User();
 
-    newUser.firstName = body.firstName;
-    newUser.lastName = body.lastName;
+    // newUser.firstName = body.firstName;
+    // newUser.lastName = body.lastName;
     newUser.email = body.email;
     newUser.password = body.password; //hashed before creating via @BeforeCreate
 
@@ -103,8 +103,8 @@ export class AuthenticationUtil {
     return {
       uuid: user.uuid,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      // firstName: user.firstName,
+      // lastName: user.lastName,
       roles: await this.getUserRoleInOrganization(user),
     };
   }
