@@ -1,6 +1,6 @@
 import { em } from "../db/config/DB.js";
 import { Organization } from "../entities/Organization.js";
-import { Log } from "./Logger.js";
+import { Log } from "../classes/Logger.js";
 
 const logger: Log = Log.getInstance().extend("notifications-util");
 

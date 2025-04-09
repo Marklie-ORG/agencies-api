@@ -1,7 +1,7 @@
 import { Queue, Worker, Job, JobScheduler } from "bullmq";
 import type Redis from "ioredis";
 import redis from "../db/redis/Redis.js";
-import { Log } from "../utils/Logger.js";
+import { Log } from "./Logger.js";
 import type { ReportJobData } from "../interfaces/ReportsInterfaces.js";
 import { ReportsUtil } from "../utils/ReportsUtil.js";
 

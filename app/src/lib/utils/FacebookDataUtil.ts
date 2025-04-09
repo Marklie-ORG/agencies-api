@@ -1,5 +1,9 @@
 import { FacebookReportsApi } from "../apis/FacebookReportsApi.js";
 import RedisClient from "../db/redis/Redis.js";
+import type {
+  AccountHierarchy,
+  Root,
+} from "../interfaces/FacebookInterfaces.js";
 
 export class FacebookDataUtil {
   private static CACHE_EXPIRY = 3600;
@@ -169,5 +173,30 @@ export class FacebookDataUtil {
     );
 
     return reportAds;
+  }
+
+  public static extractAccountHierarchy(root: Root): AccountHierarchy[] {
+    return root.data
+      .map((account) => ({
+        id: account.id,
+        name: account.name,
+        owned_ad_accounts: account.owned_ad_accounts
+          ? account.owned_ad_accounts.data
+              .map((owned) => ({
+                id: owned.id,
+                name: owned.name,
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name))
+          : [],
+        client_ad_accounts: account.client_ad_accounts
+          ? account.client_ad_accounts.data
+              .map((client) => ({
+                id: client.id,
+                name: client.name,
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name))
+          : [],
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 }

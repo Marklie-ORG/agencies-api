@@ -1,6 +1,6 @@
 import type { Context, Next } from "koa";
 import { ZodError } from "zod";
-import { Log } from "../utils/Logger.js";
+import { Log } from "../classes/Logger.js";
 
 const logger: Log = Log.getInstance().extend("error-middleware");
 

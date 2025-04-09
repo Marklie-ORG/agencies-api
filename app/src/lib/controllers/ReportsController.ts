@@ -1,21 +1,17 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import { SchedulingOption } from "../entities/SchedulingOption.js";
 import type { ReportScheduleRequest } from "../interfaces/ReportsInterfaces.js";
-import { CronUtil } from "../utils/CronUtil.js";
-import { OrganizationClient } from "../entities/OrganizationClient.js";
-import { em } from "../db/config/DB.js";
 import { roleMiddleware } from "../middlewares/RolesMiddleware.js";
 import { OrganizationRole } from "../enums/enums.js";
 import type { User } from "../entities/User.js";
-import { ReportsUtil } from "../utils/ReportsUtil.js";
-import { FacebookDataUtil } from "../utils/FacebookDataUtil.js";
-import type { Job } from "bullmq";
-import { queue } from "../classes/BullMQWrapper.js";
+import { ReportsService } from "../services/ReportsService.js";
 
 export class ReportsController extends Router {
+  private readonly reportsService: ReportsService;
+
   constructor() {
     super({ prefix: "/api/reports" });
+    this.reportsService = new ReportsService();
     this.setUpRoutes();
   }
 
@@ -33,7 +29,7 @@ export class ReportsController extends Router {
     const accountId = ctx.query.accountId as string;
     const datePreset = ctx.query.datePreset as string;
 
-    ctx.body = await FacebookDataUtil.getAllReportData(
+    ctx.body = this.reportsService.getReport(
       organizationUuid,
       accountId,
       datePreset,
@@ -46,42 +42,10 @@ export class ReportsController extends Router {
       .body as ReportScheduleRequest;
     const user: User = ctx.state.user as User;
 
-    const schedule = new SchedulingOption();
-
-    const cronExpression =
-      CronUtil.convertScheduleRequestToCron(scheduleOption);
-
-    schedule.cronExpression =
-      CronUtil.convertScheduleRequestToCron(scheduleOption);
-    schedule.client = em.getReference(
-      OrganizationClient,
-      scheduleOption.clientUuid,
+    const cronExpression = this.reportsService.createReport(
+      scheduleOption,
+      user,
     );
-
-    const client = await em.findOne(OrganizationClient, {
-      uuid: scheduleOption.clientUuid,
-    });
-
-    const job: Job = await queue.addScheduledJob(
-      `report-schedule:org:${user.activeOrganization}:client:${scheduleOption.clientUuid}:${scheduleOption.frequency}`,
-      {
-        ...scheduleOption,
-        organizationUuid: user.activeOrganization?.uuid,
-        accountId: client?.name,
-        reviewNeeded: scheduleOption.reviewNeeded,
-      },
-      cronExpression,
-    );
-
-    //todo: add timezones
-    schedule.reportType = scheduleOption.frequency;
-    schedule.jobData = scheduleOption as any;
-    schedule.timezone = "UTC";
-    schedule.datePreset = scheduleOption.datePreset;
-    schedule.bullJobId = job.id as string;
-    schedule.nextRun = ReportsUtil.getNextRunDate(scheduleOption).toJSDate();
-
-    await em.persistAndFlush(schedule);
 
     ctx.body = {
       message: "Report schedule created successfully",
