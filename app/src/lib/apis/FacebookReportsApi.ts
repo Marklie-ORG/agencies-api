@@ -1,8 +1,8 @@
 import axios, { type AxiosInstance } from "axios";
-import RedisClient from "../db/redis/Redis.js";
-import { em } from "../db/config/DB.js";
-import { OrganizationToken } from "../entities/OrganizationToken.js";
-import { OrganizationTokenType } from "../enums/enums.js";
+import { Database, OrganizationToken, RedisClient } from "markly-ts-core";
+import { OrganizationTokenType } from "markly-ts-core/dist/lib/enums/enums.js";
+
+const database = await Database.getInstance();
 
 export class FacebookReportsApi {
   private static readonly CACHE_EXPIRY = 3600;
@@ -15,7 +15,7 @@ export class FacebookReportsApi {
     organizationUuid: string,
     accountId: string,
   ): Promise<FacebookReportsApi> {
-    const token = await em.findOne(OrganizationToken, {
+    const token = await database.em.findOne(OrganizationToken, {
       organization: organizationUuid,
       type: OrganizationTokenType.FACEBOOK,
     });

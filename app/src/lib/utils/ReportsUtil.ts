@@ -1,21 +1,20 @@
+import { DateTime, type WeekdayNumbers } from "luxon";
+import { FacebookDataUtil } from "./FacebookDataUtil.js";
+import { NotificationsUtil } from "./NotificationsUtil.js";
+import { Database, Log, OrganizationClient } from "markly-ts-core";
 import type {
   ReportJobData,
   ReportScheduleRequest,
-} from "../interfaces/ReportsInterfaces.js";
-import { DateTime, type WeekdayNumbers } from "luxon";
-import { em } from "../db/config/DB.js";
-import { OrganizationClient } from "../entities/OrganizationClient.js";
-import { CommunicationChannel } from "../entities/ClientCommunicationChannel.js";
-import { FacebookDataUtil } from "./FacebookDataUtil.js";
-import { Log } from "./Logger.js";
-import { NotificationsUtil } from "./NotificationsUtil.js";
+} from "markly-ts-core/dist/lib/interfaces/ReportsInterfaces.js";
+import { CommunicationChannel } from "markly-ts-core/dist/lib/entities/ClientCommunicationChannel.js";
 
 const logger: Log = Log.getInstance().extend("reports-util");
+const database = await Database.getInstance();
 
 export class ReportsUtil {
   public static async processScheduledReportJob(data: ReportJobData) {
     try {
-      const client = await em.findOne(
+      const client = await database.em.findOne(
         OrganizationClient,
         { uuid: data.clientUuid },
         {
@@ -24,14 +23,17 @@ export class ReportsUtil {
       );
 
       if (!client) {
-        logger.warn(`Client with UUID ${data.clientUuid} not found.`);
+        logger.error(`Client with UUID ${data.clientUuid} not found.`);
         return { success: false };
       }
 
-      const communicationChannels = await em.find(CommunicationChannel, {
-        client,
-        active: true,
-      });
+      const communicationChannels = await database.em.find(
+        CommunicationChannel,
+        {
+          client,
+          active: true,
+        },
+      );
 
       const report = await FacebookDataUtil.getAllReportData(
         data.organizationUuid,

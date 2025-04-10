@@ -1,7 +1,8 @@
 import axios, { type AxiosInstance } from "axios";
-import { OrganizationTokenType } from "../enums/enums.js";
-import { OrganizationToken } from "../entities/OrganizationToken.js";
-import { em } from "../db/config/DB.js";
+import { Database, OrganizationToken } from "markly-ts-core";
+import { OrganizationTokenType } from "markly-ts-core/dist/lib/enums/enums.js";
+
+const database = await Database.getInstance();
 
 export class FacebookApi {
   private constructor(private api: AxiosInstance) {}
@@ -10,7 +11,7 @@ export class FacebookApi {
     organizationUuid: string,
     accountId: string,
   ): Promise<FacebookApi> {
-    const tokenRecord = await em.findOne(OrganizationToken, {
+    const tokenRecord = await database.em.findOne(OrganizationToken, {
       organization: organizationUuid,
       type: OrganizationTokenType.FACEBOOK,
     });

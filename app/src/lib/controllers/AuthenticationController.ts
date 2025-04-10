@@ -1,12 +1,10 @@
 import Router from "koa-router";
 import type { Context } from "koa";
+import { AuthenticationUtil, CookiesWrapper, User } from "markly-ts-core";
 import type {
   LoginRequestBody,
   RegistrationRequestBody,
-} from "../interfaces/AuthInterfaces.js";
-import type { User } from "../entities/User.js";
-import { AuthenticationUtil } from "../utils/AuthenticationUtil.js";
-import { CookiesWrapper } from "../classes/CookiesWrapper.js";
+} from "markly-ts-core/dist/lib/interfaces/AuthInterfaces.js";
 
 export class AuthController extends Router {
   constructor() {

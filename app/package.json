@@ -5,32 +5,25 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "npx swc --strip-leading-paths --config-file .swcrc ./src -d dist && if [ \"$NODE_ENV\" = \"production\" ]; then pnpm sentry:sourcemaps; fi",    "prettier:format": "pnpm exec prettier . --write",
+    "build": "npx swc --strip-leading-paths --config-file .swcrc ./src -d dist",
+    "prettier:format": "pnpm exec prettier . --write",
     "prettier:check": "npx prettier . --check\n",
     "docker:up": "docker compose -f ../docker/compose.yaml up -d",
     "generate:dts": "tsc --emitDeclarationOnly --outDir dist",
     "build:all": "npm run build && npm run generate:dts",
-    "start": "node --import ./dist/lib/utils/Sentry.js --env-file .env --experimental-specifier-resolution=node dist/index.js",
+    "start": "node --env-file .env --experimental-specifier-resolution=node dist/index.js",
     "watch": "pnpm docker:up && npx nodemon --config ./nodemon.json",
-    "start:dev": "npm run watch",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org impressie --project reports ./dist && sentry-cli sourcemaps upload --org impressie --project reports ./dist"
+    "start:dev": "npm run watch"
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",
-    "@mikro-orm/core": "^6.4.3",
-    "@mikro-orm/postgresql": "^6.4.3",
-    "@mikro-orm/reflection": "^6.4.3",
-    "@sentry/cli": "^2.43.0",
-    "@sentry/node": "^9.10.1",
+    "markly-ts-core": "1.0.7",
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.45.2",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "kpi-diploma-typescript-config": "1.0.0",
-    "uuid": "^11.1.0",
-    "winston": "^3.17.0",
-    "zod": "^3.24.2"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.6.0",

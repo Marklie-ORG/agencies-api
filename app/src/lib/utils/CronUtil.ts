@@ -1,4 +1,4 @@
-import type { ReportScheduleRequest } from "../interfaces/ReportsInterfaces.js";
+import type { ReportScheduleRequest } from "markly-ts-core/dist/lib/interfaces/ReportsInterfaces.js";
 
 export class CronUtil {
   private static mapDayOfWeekToCron(day: string): string {
