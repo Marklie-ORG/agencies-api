@@ -50,6 +50,6 @@ app
   .use(new AdAccountsController().routes())
   .use(new AdAccountsController().allowedMethods());
 
-app.listen(3000, () => {
-  logger.info(`Auth server is running at ${3000}`);
+app.listen(3001, () => {
+  logger.info(`Auth server is running at ${3001}`);
 });
