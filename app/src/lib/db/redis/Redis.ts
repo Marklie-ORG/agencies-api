@@ -1,5 +1,5 @@
 import Redis, { type RedisOptions } from "ioredis";
-import { Log } from "../../utils/Logger.js";
+import { Log } from "../../classes/Logger.js";
 
 const logger: Log = Log.getInstance().extend("redis-client");
 

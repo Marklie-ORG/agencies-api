@@ -7,7 +7,7 @@ import { em } from "../db/config/DB.js";
 import { OrganizationClient } from "../entities/OrganizationClient.js";
 import { CommunicationChannel } from "../entities/ClientCommunicationChannel.js";
 import { FacebookDataUtil } from "./FacebookDataUtil.js";
-import { Log } from "./Logger.js";
+import { Log } from "../classes/Logger.js";
 import { NotificationsUtil } from "./NotificationsUtil.js";
 
 const logger: Log = Log.getInstance().extend("reports-util");
@@ -24,7 +24,7 @@ export class ReportsUtil {
       );
 
       if (!client) {
-        logger.warn(`Client with UUID ${data.clientUuid} not found.`);
+        logger.error(`Client with UUID ${data.clientUuid} not found.`);
         return { success: false };
       }
 
