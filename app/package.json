@@ -23,7 +23,7 @@
     "bullmq": "^5.45.2",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "markly-ts-core": "file:../../markly-ts-core/markly-ts-core-1.0.15.tgz",
+    "markly-ts-core": "file:../../markly-ts-core/markly-ts-core-1.0.16.tgz",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

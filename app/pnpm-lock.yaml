@@ -23,7 +23,7 @@ specifiers:
   koa-json: ^2.0.2
   koa-router: ^13.0.1
   luxon: ^3.6.1
-  markly-ts-core: file:../../markly-ts-core/markly-ts-core-1.0.15.tgz
+  markly-ts-core: file:../../markly-ts-core/markly-ts-core-1.0.16.tgz
   prettier: 3.4.2
   typescript: ^5.7.3
   uuid: ^11.1.0
@@ -36,7 +36,7 @@ dependencies:
   bullmq: 5.48.1
   ioredis: 5.6.1
   jsonwebtoken: 9.0.2
-  markly-ts-core: file:../../markly-ts-core/markly-ts-core-1.0.15.tgz
+  markly-ts-core: file:../../markly-ts-core/markly-ts-core-1.0.16.tgz
   uuid: 11.1.0
 
 devDependencies:
@@ -3534,10 +3534,10 @@ packages:
   /zod/3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
-  file:../../markly-ts-core/markly-ts-core-1.0.15.tgz:
-    resolution: {integrity: sha512-oI1ISyB7j4SRDlRhKOFollztTuovtAiG4MLVg2D4JYGLpFYh5KgZhy/4aPnfu2xiXB8PyQcWCoMptjIHvlWMCw==, tarball: file:../../markly-ts-core/markly-ts-core-1.0.15.tgz}
+  file:../../markly-ts-core/markly-ts-core-1.0.16.tgz:
+    resolution: {integrity: sha512-/a6ezFdR9pgMeRSeRLHsDOsonAKcRt6OCch3GLhQG8DRFJPnLf7lX7okhv+1I4kN+931JgdVdhcuQGMkST1uWQ==, tarball: file:../../markly-ts-core/markly-ts-core-1.0.16.tgz}
     name: markly-ts-core
-    version: 1.0.15
+    version: 1.0.16
     dependencies:
       '@google-cloud/secret-manager': 6.0.1
       '@mikro-orm/core': 6.4.12

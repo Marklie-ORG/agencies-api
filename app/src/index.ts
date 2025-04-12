@@ -13,6 +13,7 @@ import {
   Log,
   ValidationMiddleware,
 } from "markly-ts-core";
+import { OnboardingController } from "lib/controllers/OnboardingController.js";
 
 const app = new Koa();
 
@@ -51,6 +52,10 @@ app
 app
   .use(new AdAccountsController().routes())
   .use(new AdAccountsController().allowedMethods());
+
+app
+  .use(new OnboardingController().routes())
+  .use(new OnboardingController().allowedMethods());
 
 app.listen(3001, () => {
   logger.info(`Auth server is running at ${3001}`);
