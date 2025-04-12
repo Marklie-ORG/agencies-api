@@ -1,26 +1,27 @@
 version: '3.1'
 
 services:
-  # app:
-  #   build:
-  #     context: ..
-  #     dockerfile: docker/Dockerfile
-  #   restart: always
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_started
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     DATABASE_NAME: "saas"
-  #     FACEBOOK_ACCESS_TOKEN: "EAASERizF7PoBOzEHGVpBBzQQvgkGtqGnaPaoAbYk0sKwTPLFDGq9tocxutCk76ZC4ChsLRbblTYpf6K6tqzkGnPUh1zZAAMrmQKZBIZCIU4vyvjs4Np0dXIScnVbNodLZB121G19uN8TYXLR4mFnMcOS8PoHSjMuzeOtBdziW4WwBCaVg6sSa1KOI"
-  #     DATABASE_HOST: "db"
-  #     DATABASE_PORT: "5432"
-  #     DATABASE_USER: "postgres"
-  #     DATABASE_PASSWORD: "password"
-  #     REDIS_URL: "redis://redis:6379"
+  reports-service:
+    image: romapchel/reports-service:latest
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "3030:3000"
+    environment:
+      DATABASE_NAME: "saas"
+      DATABASE_HOST: "db"
+      DATABASE_PORT: "5432"
+      DATABASE_USER: "postgres"
+      DATABASE_PASSWORD: "password"
+      REDISHOST: "redis"
+      REDISPORT: "6379"
+      GOOGLE_APPLICATION_CREDENTIALS: "/secrets/application_default_credentials.json"
+    volumes:
+      - ~/.config/gcloud/application_default_credentials.json:/secrets/application_default_credentials.json:ro
   db:
     image: postgres:14-alpine
     restart: always

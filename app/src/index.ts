@@ -1,25 +1,25 @@
-import "./lib/classes/Sentry.js";
 import Koa from "koa";
 import koabodyparser from "koa-bodyparser";
 import cors from "@koa/cors";
-import { ValidationMiddleware } from "./lib/middlewares/ValidationMiddleware.js";
 import { ReportsController } from "./lib/controllers/ReportsController.js";
-import { ErrorMiddleware } from "./lib/middlewares/ErrorMiddleware.js";
-import { orm } from "./lib/db/config/DB.js";
 import { AuthController } from "./lib/controllers/AuthenticationController.js";
-import { AuthMiddleware } from "./lib/middlewares/AuthMiddleware.js";
 import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
-import { CookiesMiddleware } from "./lib/middlewares/CookiesMiddleware.js";
 import { UserController } from "./lib/controllers/UserController.js";
-import * as Sentry from "@sentry/node";
-import { Log } from "./lib/classes/Logger.js";
+import {
+  AuthMiddleware,
+  CookiesMiddleware,
+  Database,
+  ErrorMiddleware,
+  Log,
+  ValidationMiddleware,
+} from "markly-ts-core";
 
 const app = new Koa();
-Sentry.setupKoaErrorHandler(app);
 
 const logger: Log = Log.getInstance().extend("service");
+const database = await Database.getInstance();
 
-await orm.connect().then(() => {
+await database.orm.connect().then(() => {
   logger.info("Database has connected!");
 });
 
@@ -50,6 +50,6 @@ app
   .use(new AdAccountsController().routes())
   .use(new AdAccountsController().allowedMethods());
 
-app.listen(3000, () => {
-  logger.info(`Auth server is running at ${3000}`);
+app.listen(3001, () => {
+  logger.info(`Auth server is running at ${3001}`);
 });

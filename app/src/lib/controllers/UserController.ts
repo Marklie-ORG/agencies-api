@@ -1,8 +1,8 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import type { User } from "../entities/User.js";
-import type { SetActiveOrganizationRequest } from "../interfaces/UserInterfaces.js";
 import { UserService } from "../services/UserService.js";
+import type { SetActiveOrganizationRequest } from "markly-ts-core/dist/lib/interfaces/UserInterfaces.js";
+import { User } from "markly-ts-core";
 
 export class UserController extends Router {
   private readonly userService: UserService;

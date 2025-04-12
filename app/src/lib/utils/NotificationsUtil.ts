@@ -1,15 +1,14 @@
-import { em } from "../db/config/DB.js";
-import { Organization } from "../entities/Organization.js";
-import { Log } from "../classes/Logger.js";
+import { Database, Log, Organization } from "markly-ts-core";
 
 const logger: Log = Log.getInstance().extend("notifications-util");
+const database = await Database.getInstance();
 
 export class NotificationsUtil {
   public static async sendReportIsReadyEmails(
     organizationUuid: string,
     message: string,
   ): Promise<void> {
-    const organization = await em.findOne(
+    const organization = await database.em.findOne(
       Organization,
       { uuid: organizationUuid },
       {

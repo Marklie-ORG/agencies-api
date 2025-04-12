@@ -1,16 +1,16 @@
-import { User } from "../entities/User.js";
-import { em } from "../db/config/DB.js";
-import { Organization } from "../entities/Organization.js";
+import { Database, Organization, User } from "markly-ts-core";
+
+const database = await Database.getInstance();
 
 export class UserService {
   async setActiveOrganization(
     activeOrganizationUuid: string,
     user: User,
   ): Promise<void> {
-    user.activeOrganization = em.getReference(
+    user.activeOrganization = database.em.getReference(
       Organization,
       activeOrganizationUuid,
     );
-    await em.persistAndFlush(user);
+    await database.em.persistAndFlush(user);
   }
 }
