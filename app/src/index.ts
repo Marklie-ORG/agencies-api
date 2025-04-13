@@ -14,7 +14,7 @@ import {
   ValidationMiddleware,
 } from "markly-ts-core";
 import { OnboardingController } from "lib/controllers/OnboardingController.js";
-
+import { OrganizationController } from "lib/controllers/OrganizationController.js";
 const app = new Koa();
 
 const logger: Log = Log.getInstance().extend("service");
@@ -56,6 +56,10 @@ app
 app
   .use(new OnboardingController().routes())
   .use(new OnboardingController().allowedMethods());
+
+app
+  .use(new OrganizationController().routes())
+  .use(new OrganizationController().allowedMethods());
 
 app.listen(3001, () => {
   logger.info(`Auth server is running at ${3001}`);
