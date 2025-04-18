@@ -23,7 +23,7 @@ export class OrganizationService {
     const invite = database.em.create(OrganizationInvite, {
       organization: user.activeOrganization,
       code,
-      expiresAt: new Date(Date.now() + (60 * 5)) // 5 minutes
+      expiresAt: new Date(Date.now() + (5 * 60 * 1000))
     });
 
     await database.em.persistAndFlush(invite);

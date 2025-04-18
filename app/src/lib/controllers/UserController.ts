@@ -1,20 +1,25 @@
 import Router from "koa-router";
 import type { Context } from "koa";
 import { UserService } from "../services/UserService.js";
-import type { SetActiveOrganizationRequest, SetNameRequest } from "markly-ts-core/dist/lib/interfaces/UserInterfaces.js";
+import type { SetActiveOrganizationRequest, SetNameRequest, HandleFacebookLoginRequest } from "markly-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import { User } from "markly-ts-core";
+import { FacebookApi } from "lib/apis/FacebookApi.js";
+import { AgencyService } from "lib/services/AgencyService.js";
 
 export class UserController extends Router {
   private readonly userService: UserService;
+  private readonly agencyService: AgencyService;
   constructor() {
     super({ prefix: "/api/user" });
     this.userService = new UserService();
+    this.agencyService = new AgencyService();
     this.setUpRoutes();
   } 
 
   private setUpRoutes() {
     this.post("/active-organization", (ctx) => this.setActiveOrganization(ctx));
     this.post("/name", (ctx) => this.setName(ctx));
+    this.post("/handle-facebook-login", (ctx) => this.handleFacebookLogin(ctx));
   }
 
   private async setActiveOrganization(ctx: Context) {
@@ -43,4 +48,28 @@ export class UserController extends Router {
     ctx.body = { message: "Name updated successfully." };
     ctx.status = 200;
   }
+
+  private async handleFacebookLogin(ctx: Context) {
+    const body = ctx.request.body as HandleFacebookLoginRequest;
+    const user: User = ctx.state.user as User;
+
+    console.log(body);
+
+    const data = await FacebookApi.handleFacebookLogin(
+      body.code,
+      body.redirectUri,
+      // user, 
+    );
+
+    const accessToken = data.access_token;
+
+    this.agencyService.saveAgencyToken(user, accessToken);
+
+    console.log("access_token");
+    console.log(accessToken);
+
+    ctx.body = { message: "Access token retrieved successfully." };
+    ctx.status = 200;
+  }
+
 }

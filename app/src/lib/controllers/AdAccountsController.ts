@@ -1479,7 +1479,7 @@ export class AdAccountsController extends Router {
       // const facebookApi = new FacebookApi(organizationName);
       // const response = await facebookApi.getBusinesses();
 
-      ctx.body = extractAccountHierarchy(root);
+      ctx.body = await extractAccountHierarchy(root);
       ctx.status = 200;
     } catch (error) {
       console.error(error);
