@@ -16,7 +16,7 @@ export class ReportsController extends Router {
     this.post(
       "/schedule",
       RoleMiddleware(OrganizationRole.OWNER),
-      this.scheduleReports,
+      this.scheduleReports.bind(this),
     );
   }
 

@@ -13,10 +13,10 @@ export class AuthController extends Router {
   }
 
   private setUpRoutes() {
-    this.post("/login", this.login);
-    this.post("/register", this.registration);
-    this.get("/me", this.me);
-    this.post("/refresh", this.refresh);
+    this.post("/login", this.login.bind(this));
+    this.post("/register", this.registration.bind(this));
+    this.get("/me", this.me.bind(this));
+    this.post("/refresh", this.refresh.bind(this));
   }
 
   private async me(ctx: Context) {

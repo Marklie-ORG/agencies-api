@@ -13,4 +13,14 @@ export class UserService {
     );
     await database.em.persistAndFlush(user);
   }
+
+  async setName(
+    firstName: string,
+    lastName: string,
+    user: User,
+  ): Promise<void> {
+    user.firstName = firstName;
+    user.lastName = lastName;
+    await database.em.persistAndFlush(user);
+  }
 }

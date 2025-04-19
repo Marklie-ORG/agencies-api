@@ -13,7 +13,9 @@ import {
   Log,
   ValidationMiddleware,
 } from "markly-ts-core";
-
+import { OnboardingController } from "lib/controllers/OnboardingController.js";
+import { OrganizationController } from "lib/controllers/OrganizationController.js";
+import { ClientController } from "lib/controllers/ClientController.js";
 const app = new Koa();
 
 const logger: Log = Log.getInstance().extend("service");
@@ -25,7 +27,17 @@ await database.orm.connect().then(() => {
 
 app.use(
   cors({
-    origin: "http://localhost:4200",
+    origin: (ctx) => {
+      const allowedOrigins = [
+        "http://localhost:4200", 
+        "https://derevian.co", 
+        "https://ddc1-77-174-130-35.ngrok-free.app"];
+      const requestOrigin = ctx.request.header.origin;
+      if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+        return requestOrigin;
+      }
+      return allowedOrigins[0];
+    },
     credentials: true,
   }),
 );
@@ -50,6 +62,19 @@ app
   .use(new AdAccountsController().routes())
   .use(new AdAccountsController().allowedMethods());
 
+app
+  .use(new OnboardingController().routes())
+  .use(new OnboardingController().allowedMethods());
+
+app
+  .use(new OrganizationController().routes())
+  .use(new OrganizationController().allowedMethods());
+
+app
+  .use(new ClientController().routes())
+  .use(new ClientController().allowedMethods());
+
+  // '0.0.0.0',
 app.listen(3001, () => {
   logger.info(`Auth server is running at ${3001}`);
 });
