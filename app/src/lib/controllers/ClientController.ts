@@ -12,8 +12,8 @@ export class ClientController extends Router {
   } 
 
   private setUpRoutes() {
-    this.post("/client", this.createClient.bind(this));
-    this.get("/clients", this.getClients.bind(this));
+    this.post("/", this.createClient.bind(this));
+    this.get("/", this.getClients.bind(this));
   }
 
   private async createClient(ctx: Context) {

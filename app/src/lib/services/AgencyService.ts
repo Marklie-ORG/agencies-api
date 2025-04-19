@@ -6,16 +6,12 @@ const database = await Database.getInstance();
 export class AgencyService {
   
     async saveAgencyToken(user: User, token: string): Promise<void> {
-        try {
-          const tokenEntity = new OrganizationToken();
-          tokenEntity.type = OrganizationTokenType.FACEBOOK;
-          tokenEntity.token = token;
-          tokenEntity.organization = user.activeOrganization;
-    
-          await database.em.persistAndFlush(tokenEntity);
-        } catch (e) {
-        //   logger.error(e);
-        }
+      const tokenEntity = new OrganizationToken();
+      tokenEntity.type = OrganizationTokenType.FACEBOOK;
+      tokenEntity.token = token;
+      tokenEntity.organization = user.activeOrganization;
+
+      await database.em.persistAndFlush(tokenEntity);
     }
 
 }
