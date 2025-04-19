@@ -18,9 +18,9 @@ export class OrganizationController extends Router {
   } 
 
   private setUpRoutes() {
-    this.post("/organization", (ctx) => this.createOrganization(ctx));
-    this.get("/invite-code", (ctx) => this.generateInviteCode(ctx));
-    this.post("/invite-code", (ctx) => this.useInviteCode(ctx));
+    this.post("/organization", this.createOrganization.bind(this));
+    this.get("/invite-code", this.generateInviteCode.bind(this));
+    this.post("/invite-code", this.useInviteCode.bind(this));
   }
 
   private async createOrganization(ctx: Context) {

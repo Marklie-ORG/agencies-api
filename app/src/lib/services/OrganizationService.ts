@@ -1,4 +1,4 @@
-import { Database, User } from "markly-ts-core";
+import { Database, OrganizationClient, User } from "markly-ts-core";
 import { OrganizationRole } from "markly-ts-core/dist/lib/enums/enums.js";
 import { OrganizationInvite } from "markly-ts-core/dist/lib/entities/OrganizationInvite.js";
 import { OrganizationMember } from "markly-ts-core/dist/lib/entities/OrganizationMember.js";
@@ -11,7 +11,7 @@ export class OrganizationService {
   async generateInviteCode(user: User): Promise<string> {
     // Check if user has owner role in their active organization
     const userRoles = await AuthenticationUtil.getUserRoleInOrganization(user);
-    // console.log(userRole);
+    
     if (userRoles[0].role !== OrganizationRole.OWNER) {
       throw new Error("Only organization owners can generate invite codes");
     }
@@ -74,6 +74,20 @@ export class OrganizationService {
 
     // Save all changes in a single transaction
     await database.em.persistAndFlush([orgMember, user, invite]);
+  }
+
+  async createOrganizationClient(name: string, activeOrganizationUuid: string) {
+    const newClient = database.em.create(OrganizationClient, {
+        name: name,
+        organization: activeOrganizationUuid
+    });
+
+    await database.em.persistAndFlush(newClient);
+  }
+
+  async getOrganizationClients(activeOrganizationUuid: string) {
+    const clients = await database.em.find(OrganizationClient, { organization: activeOrganizationUuid });
+    return clients;
   }
 
 }

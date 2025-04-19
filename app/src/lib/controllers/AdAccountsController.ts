@@ -1470,7 +1470,7 @@ export class AdAccountsController extends Router {
   }
 
   private setUpRoutes() {
-    this.get("/businesses", this.getAdAccounts);
+    this.get("/businesses", this.getAdAccounts.bind(this));
   }
 
   private async getAdAccounts(ctx: Context) {

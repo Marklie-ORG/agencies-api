@@ -1,33 +1,26 @@
 import Router from "koa-router";
 import type { Context } from "koa";
 import type { CreateClientRequest } from "markly-ts-core/dist/lib/interfaces/ClientInterfaces.js";
-import { Database, OrganizationClient } from "markly-ts-core";
-const database = await Database.getInstance();
+import { OrganizationService } from "lib/services/OrganizationService.js";
 
 export class ClientController extends Router {
-  
+  private readonly organizationService: OrganizationService;
   constructor() {
     super({ prefix: "/api/clients" });
+    this.organizationService = new OrganizationService();
     this.setUpRoutes();
   } 
 
   private setUpRoutes() {
-    this.post("/client", (ctx) => this.createClient(ctx));
-    this.get("/clients", (ctx) => this.getClients(ctx));
+    this.post("/client", this.createClient.bind(this));
+    this.get("/clients", this.getClients.bind(this));
   }
 
   private async createClient(ctx: Context) {
     const body = ctx.request.body as CreateClientRequest;
     const user = ctx.state.user;
 
-    console.log(user)
-
-    const newClient = database.em.create(OrganizationClient, {
-        name: body.name,
-        organization: user.activeOrganization
-    });
-
-    await database.em.persistAndFlush(newClient);
+    await this.organizationService.createOrganizationClient(body.name, user.activeOrganization.uuid);
 
     ctx.body = { message: "Client created successfully." };
     ctx.status = 200;
@@ -36,7 +29,7 @@ export class ClientController extends Router {
   private async getClients(ctx: Context) {
     const user = ctx.state.user;
 
-    const clients = await database.em.find(OrganizationClient, { organization: user.activeOrganization });
+    const clients = await this.organizationService.getOrganizationClients(user.activeOrganization);
 
     ctx.body = clients;
     ctx.status = 200;

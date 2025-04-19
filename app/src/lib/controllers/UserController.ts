@@ -17,9 +17,9 @@ export class UserController extends Router {
   } 
 
   private setUpRoutes() {
-    this.post("/active-organization", (ctx) => this.setActiveOrganization(ctx));
-    this.post("/name", (ctx) => this.setName(ctx));
-    this.post("/handle-facebook-login", (ctx) => this.handleFacebookLogin(ctx));
+    this.post("/active-organization", this.setActiveOrganization.bind(this));
+    this.post("/name", this.setName.bind(this));
+    this.post("/handle-facebook-login", this.handleFacebookLogin.bind(this));
   }
 
   private async setActiveOrganization(ctx: Context) {
@@ -53,20 +53,14 @@ export class UserController extends Router {
     const body = ctx.request.body as HandleFacebookLoginRequest;
     const user: User = ctx.state.user as User;
 
-    console.log(body);
-
     const data = await FacebookApi.handleFacebookLogin(
       body.code,
-      body.redirectUri,
-      // user, 
+      body.redirectUri
     );
 
     const accessToken = data.access_token;
 
     this.agencyService.saveAgencyToken(user, accessToken);
-
-    console.log("access_token");
-    console.log(accessToken);
 
     ctx.body = { message: "Access token retrieved successfully." };
     ctx.status = 200;

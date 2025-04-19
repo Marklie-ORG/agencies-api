@@ -2,13 +2,7 @@ import axios from "axios";
 
 export class FacebookApi {
   private constructor() {}
-
-  /**
-   * Handles the Facebook login process by exchanging the authorization code for an access token.
-   * @param code The authorization code received from the Facebook login process.
-   * @param redirectUri The redirect URI specified in the Facebook app settings.
-   * @returns A promise that resolves to the access token response data.
-   */
+  
   public static async handleFacebookLogin(code: string, redirectUri: string) {
 
     const api = axios.create({
