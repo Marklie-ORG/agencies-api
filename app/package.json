@@ -13,7 +13,8 @@
     "build:all": "npm run build && npm run generate:dts",
     "start": "node --env-file .env --experimental-specifier-resolution=node dist/index.js",
     "watch": "pnpm docker:up && npx nodemon --config ./nodemon.json",
-    "start:dev": "npm run watch"
+    "start:dev": "npm run watch",
+    "update:core": "pnpm store prune && cd .. && cd .. && cd markly-ts-core && npm run build && pnpm pack && cd .. && cd agencies-api && cd app && pnpm i ../../markly-ts-core/markly-ts-core-1.1.5.tgz && npm run start:dev"
   },
   "dependencies": {
     "@google-cloud/pubsub": "^4.11.0",
@@ -23,7 +24,7 @@
     "bullmq": "^5.45.2",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "markly-ts-core": "1.1.4",
+    "markly-ts-core": "file:../../markly-ts-core/markly-ts-core-1.1.5.tgz",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

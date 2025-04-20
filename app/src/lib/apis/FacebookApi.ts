@@ -1,16 +1,20 @@
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 
 export class FacebookApi {
-  private constructor() {}
-  
-  public static async handleFacebookLogin(code: string, redirectUri: string) {
+  private api: AxiosInstance;
+  private accessToken: string;
 
-    const api = axios.create({
+  constructor() {
+    this.api = axios.create({
         baseURL: `https://graph.facebook.com/v22.0`,
         headers: { "Content-Type": "application/json" }
     });
+    this.accessToken = process.env.FACEBOOK_ACCESS_TOKEN || "";
+  }
+  
+  public async handleFacebookLogin(code: string, redirectUri: string) {
 
-    const response = await api.get("/oauth/access_token", {
+    const response = await this.api.get("/oauth/access_token", {
         params: {
             client_id: process.env.FACEBOOK_APP_ID,
             redirect_uri: redirectUri,
@@ -21,4 +25,30 @@ export class FacebookApi {
 
     return response.data;
   }
+
+  public async getBusinesses() {
+    const response = await this.api.get(`/me/businesses`, {
+      params: {
+        fields:
+          "id,name,owned_ad_accounts{id,name,account_status,business},client_ad_accounts{id,name,account_status,business}",
+        access_token: this.accessToken
+      },
+    });
+
+    return response.data;
+  }
+
+  public async getAdAccounts() {
+    const response = await this.api.get(`/me/adaccounts`, {
+      params: {
+        fields:
+          "id,name,account_status,currency,timezone_name",
+        limit: 500,
+        access_token: this.accessToken
+      },
+    });
+
+    return response.data;
+  }
+
 }

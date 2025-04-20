@@ -2655,6 +2655,7 @@ packages:
   /node-domexception/1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
     dev: false
 
   /node-fetch/2.7.0:
@@ -2775,7 +2776,6 @@ packages:
   /path-to-regexp/8.2.0:
     resolution: {integrity: sha512-TdrF7fW9Rphjq4RjrW0Kp2AW0Ahwu9sRGTkS6bvDi0SCwZlEZYmcfDbEsTz8RVk0EHIS/Vd1bv3JhG+1xZuAyQ==}
     engines: {node: '>=16'}
-    dev: true
 
   /path-type/4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
@@ -3608,7 +3608,7 @@ packages:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
   file:../../markly-ts-core/markly-ts-core-1.1.5.tgz:
-    resolution: {integrity: sha512-nlrqsE9hKYEfyRyXVticWu44K7OF1WqGfELUMpRophMY2v+03kx4c4XHWx115hn8ybDIF/PA5kqEfoZUzNfCqg==, tarball: file:../../markly-ts-core/markly-ts-core-1.1.5.tgz}
+    resolution: {integrity: sha512-gTnu1nmxIDoEo5wIFHRkNh0pwa9eOk020IMy86QWFUx4BzYxWWAoMXzkIseyEexlD+63EryvNDWh2EuI3se2aA==, tarball: file:../../markly-ts-core/markly-ts-core-1.1.5.tgz}
     name: markly-ts-core
     version: 1.1.5
     dependencies:
@@ -3623,6 +3623,7 @@ packages:
       bullmq: 5.48.1
       ioredis: 5.6.1
       jsonwebtoken: 9.0.2
+      path-to-regexp: 8.2.0
       uuid: 11.1.0
       winston: 3.17.0
       zod: 3.24.2

@@ -25,6 +25,8 @@ await database.orm.connect().then(() => {
   logger.info("Database has connected!");
 });
 
+await database.orm.getSchemaGenerator().updateSchema();
+
 app.use(
   cors({
     origin: (ctx) => {
