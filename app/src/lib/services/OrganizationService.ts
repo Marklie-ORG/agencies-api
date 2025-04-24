@@ -111,6 +111,11 @@ export class OrganizationService {
     return clients;
   }
 
+  async getClient(clientUuid: string) {
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    return client;
+  }
+
   async getClientFacebookAdAccounts(clientUuid: string) {
     const clients = await database.em.find(ClientFacebookAdAccount, { client: clientUuid });
     return clients;

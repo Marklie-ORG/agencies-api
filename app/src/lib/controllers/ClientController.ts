@@ -14,6 +14,7 @@ export class ClientController extends Router {
   private setUpRoutes() {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
+    this.get("/:clientUuid", this.getClient.bind(this));
     this.get("/:clientUuid/ad-accounts", this.getClientFacebookAdAccounts.bind(this));
     this.post("/:clientUuid/ad-accounts", this.createClientFacebookAdAccount.bind(this));
     this.delete("/:clientUuid/ad-accounts/:adAccountId", this.deleteClientFacebookAdAccount.bind(this));
@@ -41,6 +42,14 @@ export class ClientController extends Router {
     const clients = await this.organizationService.getOrganizationClients(user.activeOrganization);
 
     ctx.body = clients;
+    ctx.status = 200;
+  }
+
+  private async getClient(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+    const client = await this.organizationService.getClient(clientUuid);
+
+    ctx.body = client;
     ctx.status = 200;
   }
 
