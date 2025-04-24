@@ -25,12 +25,14 @@ await database.orm.connect().then(() => {
   logger.info("Database has connected!");
 });
 
+// await database.orm.getSchemaGenerator().updateSchema();
+
 app.use(
   cors({
     origin: (ctx) => {
       const allowedOrigins = [
         "http://localhost:4200", 
-        "https://derevian.co", 
+        "https://marklie.com", 
         "https://ddc1-77-174-130-35.ngrok-free.app"];
       const requestOrigin = ctx.request.header.origin;
       if (requestOrigin && allowedOrigins.includes(requestOrigin)) {

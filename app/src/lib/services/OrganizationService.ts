@@ -2,6 +2,7 @@ import { Database, Organization, OrganizationClient, User } from "markly-ts-core
 import { OrganizationRole } from "markly-ts-core/dist/lib/enums/enums.js";
 import { OrganizationInvite } from "markly-ts-core/dist/lib/entities/OrganizationInvite.js";
 import { OrganizationMember } from "markly-ts-core/dist/lib/entities/OrganizationMember.js";
+import { ClientFacebookAdAccount } from "markly-ts-core/dist/lib/entities/ClientFacebookAdAccount.js";
 import { AuthenticationUtil } from "markly-ts-core";
 import { UserService } from "./UserService.js";
 
@@ -94,13 +95,15 @@ export class OrganizationService {
     await database.em.persistAndFlush([orgMember, user, invite]);
   }
 
-  async createOrganizationClient(name: string, activeOrganizationUuid: string) {
+  async createOrganizationClient(name: string, activeOrganizationUuid: string): Promise<OrganizationClient> {
     const newClient = database.em.create(OrganizationClient, {
         name: name,
         organization: activeOrganizationUuid
     });
 
     await database.em.persistAndFlush(newClient);
+
+    return newClient;
   }
 
   async getOrganizationClients(activeOrganizationUuid: string) {
@@ -108,4 +111,30 @@ export class OrganizationService {
     return clients;
   }
 
+  async getClient(clientUuid: string) {
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    return client;
+  }
+
+  async getClientFacebookAdAccounts(clientUuid: string) {
+    const clients = await database.em.find(ClientFacebookAdAccount, { client: clientUuid });
+    return clients;
+  }
+
+  async createClientFacebookAdAccount(clientUuid: string, adAccountId: string) {
+    const newClientFacebookAdAccount = database.em.create(ClientFacebookAdAccount, { client: clientUuid, adAccountId });
+    await database.em.persistAndFlush(newClientFacebookAdAccount);
+  }
+
+  async deleteClientFacebookAdAccount(clientUuid: string, adAccountId: string) {
+    const clientFacebookAdAccount = await database.em.findOne(ClientFacebookAdAccount, { client: clientUuid, adAccountId });
+    if (!clientFacebookAdAccount) {
+      throw new Error("Client Facebook Ad Account not found");
+    }
+    await database.em.removeAndFlush(clientFacebookAdAccount);
+  }
+  
+  
+
 }
+

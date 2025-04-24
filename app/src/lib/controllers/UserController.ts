@@ -53,7 +53,9 @@ export class UserController extends Router {
     const body = ctx.request.body as HandleFacebookLoginRequest;
     const user: User = ctx.state.user as User;
 
-    const data = await FacebookApi.handleFacebookLogin(
+    const facebookApi = new FacebookApi();  
+
+    const data = await facebookApi.handleFacebookLogin(
       body.code,
       body.redirectUri
     );

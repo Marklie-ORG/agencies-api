@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import type { CreateClientRequest } from "markly-ts-core/dist/lib/interfaces/ClientInterfaces.js";
+import type { CreateClientRequest, CreateClientFacebookAdAccountRequest } from "markly-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { OrganizationService } from "lib/services/OrganizationService.js";
 
 export class ClientController extends Router {
@@ -14,13 +14,23 @@ export class ClientController extends Router {
   private setUpRoutes() {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
+    this.get("/:clientUuid", this.getClient.bind(this));
+    this.get("/:clientUuid/ad-accounts", this.getClientFacebookAdAccounts.bind(this));
+    this.post("/:clientUuid/ad-accounts", this.createClientFacebookAdAccount.bind(this));
+    this.delete("/:clientUuid/ad-accounts/:adAccountId", this.deleteClientFacebookAdAccount.bind(this));
   }
 
   private async createClient(ctx: Context) {
     const body = ctx.request.body as CreateClientRequest;
     const user = ctx.state.user;
 
-    await this.organizationService.createOrganizationClient(body.name, user.activeOrganization.uuid);
+    const client = await this.organizationService.createOrganizationClient(body.name, user.activeOrganization.uuid);
+
+    if (body.facebookAdAccounts.length > 0) {
+      for (const adAccountId of body.facebookAdAccounts) {
+        await this.organizationService.createClientFacebookAdAccount(client.uuid, adAccountId);
+      }
+    }
 
     ctx.body = { message: "Client created successfully." };
     ctx.status = 200;
@@ -32,6 +42,43 @@ export class ClientController extends Router {
     const clients = await this.organizationService.getOrganizationClients(user.activeOrganization);
 
     ctx.body = clients;
+    ctx.status = 200;
+  }
+
+  private async getClient(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+    const client = await this.organizationService.getClient(clientUuid);
+
+    ctx.body = client;
+    ctx.status = 200;
+  }
+
+  private async getClientFacebookAdAccounts(ctx: Context) {
+    // const user = ctx.state.user;
+    const clientUuid = ctx.params.clientUuid;
+    const facebookAdAccounts = await this.organizationService.getClientFacebookAdAccounts(clientUuid);
+
+    ctx.body = facebookAdAccounts;
+    ctx.status = 200;
+  }
+
+  private async createClientFacebookAdAccount(ctx: Context) {
+    const body = ctx.request.body as CreateClientFacebookAdAccountRequest;
+    const clientUuid = ctx.params.clientUuid;
+
+    await this.organizationService.createClientFacebookAdAccount(clientUuid, body.adAccountId);
+
+    ctx.body = { message: "Client Facebook Ad Account created successfully." };
+    ctx.status = 200;
+  }
+
+  private async deleteClientFacebookAdAccount(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+    const adAccountId = ctx.params.adAccountId;
+
+    await this.organizationService.deleteClientFacebookAdAccount(clientUuid, adAccountId);
+
+    ctx.body = { message: "Client Facebook Ad Account deleted successfully." };
     ctx.status = 200;
   }
 
