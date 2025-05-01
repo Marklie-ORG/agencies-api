@@ -3608,7 +3608,7 @@ packages:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
   file:../../markly-ts-core/markly-ts-core-1.1.6.tgz:
-    resolution: {integrity: sha512-hgSzTCoSetjf33drrYVY/af5RpcK+oQhb2dHHgR158pzhcGdiKcWxFBzzuZwKtnePRf9VIUH5G9VJg/uqC/XlA==, tarball: file:../../markly-ts-core/markly-ts-core-1.1.6.tgz}
+    resolution: {integrity: sha512-EsX4v8hQW9h6BFDkFv8CjPzi7DBK2p5kJYnc6w2bhQGMiQwKlcmjPXSpD3ieEmGYImt+b1WM+2LM5vRncknsyQ==, tarball: file:../../markly-ts-core/markly-ts-core-1.1.6.tgz}
     name: markly-ts-core
     version: 1.1.6
     dependencies:

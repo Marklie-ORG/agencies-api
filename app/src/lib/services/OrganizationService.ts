@@ -1,10 +1,28 @@
-import { Database, Organization, OrganizationClient, User } from "markly-ts-core";
-import { OrganizationRole } from "markly-ts-core/dist/lib/enums/enums.js";
+import { ClientToken, Database, Organization, OrganizationClient, User } from "markly-ts-core";
+import { ClientTokenType, OrganizationRole } from "markly-ts-core/dist/lib/enums/enums.js";
 import { OrganizationInvite } from "markly-ts-core/dist/lib/entities/OrganizationInvite.js";
 import { OrganizationMember } from "markly-ts-core/dist/lib/entities/OrganizationMember.js";
 import { ClientFacebookAdAccount } from "markly-ts-core/dist/lib/entities/ClientFacebookAdAccount.js";
 import { AuthenticationUtil } from "markly-ts-core";
 import { UserService } from "./UserService.js";
+import { SlackApi } from "lib/apis/SlackApi.js";
+
+
+interface Conversations {
+  channels: Channel[];
+  ims: IM[];
+}
+
+interface Channel {
+  id: string;
+  name: string;
+}
+
+interface IM {
+  id: string;
+  name: string;
+  image: string;
+}
 
 const database = await Database.getInstance();
 
@@ -133,7 +151,239 @@ export class OrganizationService {
     }
     await database.em.removeAndFlush(clientFacebookAdAccount);
   }
+
+  async createClientToken(token: string, clientUuid: string, type: ClientTokenType): Promise<ClientToken> {
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    if (!client) throw new Error("Client not found");
+
+    const existingToken = await database.em.findOne(ClientToken, {
+      organizationClient: clientUuid,
+      type: type
+    });
   
+    const clientToken = existingToken ?? new ClientToken();
+  
+    clientToken.token = token;
+    clientToken.type = type;
+    clientToken.organizationClient = client;
+    clientToken.organization = client.organization;
+  
+    client.slackConversationId = null;
+  
+    await database.em.persistAndFlush([clientToken, client]);
+  
+    return clientToken;
+  }
+
+  async getAvailableSlackConversations(organizationClientId: string): Promise<Conversations> {
+
+    let channels: Channel[] = [];
+    let ims: IM[] = [];
+
+    const clientToken = await database.em.findOne(ClientToken, { 
+      organizationClient: organizationClientId,
+      type: ClientTokenType.SLACK 
+    });
+
+    if (!clientToken) throw new Error("Slack token not found for client");
+
+    const accessToken = clientToken.token;
+
+    const slackApi = new SlackApi();
+    const conversations = await slackApi.getConversationsList(accessToken);
+    const users = await slackApi.getUsersList(accessToken);
+
+    channels = conversations.channels.map((channel: { id: string, name: string, is_channel: boolean }) => {
+      if (channel.is_channel) {
+        return {
+          id: channel.id,
+          name: channel.name
+        }
+      }
+      else {
+        return null;
+      }
+    }).filter((channel: any) => channel !== null);
+
+    ims = users.members.map((member) => {
+      return {
+        id: member.id,
+        name: member.profile.real_name,
+        image: member.profile.image_48
+      }
+    });
+
+    return {
+      channels,
+      ims
+    };
+  }
+
+  async isSlackWorkspaceConnected(organizationClientId: string): Promise<boolean> {
+
+    const clientToken = await database.em.findOne(ClientToken, { 
+      organizationClient: organizationClientId,
+      type: ClientTokenType.SLACK 
+    });
+
+    if (clientToken) {
+      return true
+    }
+
+    return false;
+
+  }
+
+  async setSlackConversationId(organizationClientId: string, conversationId: string) {
+    const client = await database.em.findOne(OrganizationClient, { 
+      uuid: organizationClientId
+    });
+    if (!client) throw new Error("Client not found");
+
+    const isUserId = conversationId.startsWith("U");
+    const isChannelId = conversationId.startsWith("C");
+
+    if (!isUserId && !isChannelId) {
+      throw new Error(`Invalid Slack conversation ID: ${conversationId}`);
+    }
+
+    if (isUserId) {
+      client.slackConversationId = conversationId;
+    }
+    else { // join channel before assigning it.
+      const clientToken = await database.em.findOne(ClientToken, { 
+        organizationClient: organizationClientId,
+        type: ClientTokenType.SLACK 
+      });
+      if (!clientToken) throw new Error("Slack token not found for client");
+
+      const slackApi = new SlackApi();
+      const response = await slackApi.joinChannel(clientToken.token, conversationId);
+
+      if (!response.ok) {
+        throw new Error("Failed to join Slack channel");
+      }
+
+      client.slackConversationId = conversationId;
+    }
+    
+    await database.em.persistAndFlush(client);
+
+    return client;
+  }
+
+  async sendSlackMessage(organizationClientId: string, message: string) {
+    const client = await database.em.findOne(OrganizationClient, { 
+      uuid: organizationClientId
+    });
+
+    if (!client) {
+      throw new Error("Client not found");
+    }
+    
+    if (!client.slackConversationId) {
+      throw new Error("Slack conversation ID not found for client");
+    }
+
+    const clientToken = await database.em.findOne(ClientToken, { 
+      organizationClient: organizationClientId,
+      type: ClientTokenType.SLACK 
+    });
+
+    if (!clientToken) {
+      throw new Error("Slack token not found for client");
+    }
+
+    const slackApi = new SlackApi();
+    const response = await slackApi.sendMessage(clientToken.token, client.slackConversationId, message);
+
+    return response;
+  }
+
+  async getConnectedSlackWorkspaces(organizationUuid: string) {
+    const tokens = await database.em.find(ClientToken, { 
+      organization: { uuid: organizationUuid },
+      type: ClientTokenType.SLACK 
+    }, {
+      populate: ['organizationClient']
+    });
+    
+    const slackApi = new SlackApi();
+
+    const workspaces = await Promise.all(tokens.map(async (token: ClientToken) => {
+      
+      const response = await slackApi.getTeamInfo(token.token);
+      return {
+        clientName: token.organizationClient.name,
+        clientId: token.organizationClient.uuid,
+        tokenId: token.uuid,
+        teamId: response.team.id,
+        name: response.team.name,
+        image: response.team.icon.image_34
+      };
+    }));
+
+    return workspaces;
+  }
+
+  async setSlackWorkspaceToken(organizationClientId: string, tokenId: string) {
+    const token = await database.em.findOne(ClientToken, { 
+      uuid: tokenId
+    });
+
+    if (!token) {
+      throw new Error("Token not found");
+    }
+
+    const clientToken = await this.createClientToken(token.token, organizationClientId, ClientTokenType.SLACK);
+
+    return clientToken;
+    
+  }
+
+  async sendMessageWithFileToSlack(organizationClientId: string, message: string, pdfBuffer: Buffer, fileName: string) {
+
+    const slackApi = new SlackApi();
+
+    const client = await database.em.findOne(OrganizationClient, { 
+      uuid: organizationClientId
+    });
+
+    const clientToken = await database.em.findOne(ClientToken, { 
+      organizationClient: organizationClientId,
+      type: ClientTokenType.SLACK 
+    });
+
+    if (!clientToken) {
+      throw new Error("Slack token not found for client");
+    }
+
+    const uploadUrl = await slackApi.getUploadUrl(
+      clientToken.token, 
+      fileName, 
+      pdfBuffer.length
+    );
+
+    await slackApi.uploadFile(
+      clientToken.token, 
+      uploadUrl.upload_url, 
+      pdfBuffer
+    );
+
+    await slackApi.completeUpload(
+      clientToken.token, 
+      [{id: uploadUrl.file_id, title: fileName}]
+    );
+
+    const sendMessageResponse = await slackApi.sendMessage(
+      clientToken.token, 
+      client.slackConversationId, 
+      message, 
+      uploadUrl.file_id
+    );
+
+    return sendMessageResponse;
+  }
   
 
 }

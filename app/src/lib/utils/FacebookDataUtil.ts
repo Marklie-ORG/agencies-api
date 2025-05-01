@@ -16,10 +16,10 @@ export async function extractAccountHierarchy(
       ].map(account => ({
         id: account.id,
         name: account.name,
-        business: {
+        business: account.business ? {
           id: account.business.id,
           name: account.business.name
-        }
+        } : null
         
       })).sort((a, b) => a.name.localeCompare(b.name)),
 
