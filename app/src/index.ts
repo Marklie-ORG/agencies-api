@@ -12,7 +12,7 @@ import {
   ErrorMiddleware,
   Log,
   ValidationMiddleware,
-} from "markly-ts-core";
+} from "marklie-ts-core";
 import { OnboardingController } from "lib/controllers/OnboardingController.js";
 import { OrganizationController } from "lib/controllers/OrganizationController.js";
 import { ClientController } from "lib/controllers/ClientController.js";
@@ -25,8 +25,6 @@ const database = await Database.getInstance();
 await database.orm.connect().then(() => {
   logger.info("Database has connected!");
 });
-
-await database.orm.getSchemaGenerator().updateSchema();
 
 app.use(
   cors({

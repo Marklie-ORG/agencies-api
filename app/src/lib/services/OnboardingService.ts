@@ -1,5 +1,5 @@
-import { Database, OnboardingQuestionAnswer, OrganizationToken, User } from "markly-ts-core";
-import type { OnboardingSteps } from "markly-ts-core/dist/lib/interfaces/OnboardingInterfaces.js";
+import { Database, OnboardingQuestionAnswer, OrganizationToken, User } from "marklie-ts-core";
+import type { OnboardingSteps } from "marklie-ts-core/dist/lib/interfaces/OnboardingInterfaces.js";
 
 const database = await Database.getInstance();
 

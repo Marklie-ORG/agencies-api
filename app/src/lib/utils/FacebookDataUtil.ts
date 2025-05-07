@@ -1,7 +1,7 @@
 import type {
   AccountHierarchy,
   Root,
-} from "markly-ts-core/dist/lib/interfaces/FacebookInterfaces.js";
+} from "marklie-ts-core/dist/lib/interfaces/FacebookInterfaces.js";
 
 export async function extractAccountHierarchy(
   root: Root,

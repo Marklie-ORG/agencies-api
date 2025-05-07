@@ -1,38 +1,43 @@
 import axios, { type AxiosInstance } from "axios";
+import type { UsersList } from "marklie-ts-core/dist/lib/interfaces/SlackInterfaces.js";
 
 export class SlackApi {
   private api: AxiosInstance;
+  private accessToken: string | null = null;
 
-  constructor() {
+  constructor(accessToken?: string) {
+    this.accessToken = accessToken || null;
     this.api = axios.create({
         baseURL: `https://slack.com/api`,
-        headers: { "Content-Type": "application/json" }
+        headers: { 
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` })
+        }
     });
   }
   
   public async handleSlackLogin(code: string, redirectUri: string) {
-
     const response = await this.api.get("/oauth.v2.access", {
         params: {
             client_id: process.env.SLACK_CLIENT_ID,
             redirect_uri: redirectUri,
             client_secret: process.env.SLACK_CLIENT_SECRET,
             code: code
+        },
+        headers: {
+          "Content-Type": "application/json"
         }
     });
 
     return response.data;
   }
 
-  public async getConversationsList(accessToken: string) {
+  public async getConversationsList() {
     
     const response = await this.api.get("/conversations.list", 
       {
         params: {
           types: "public_channel,private_channel,mpim"
-        },
-        headers: {
-          Authorization: `Bearer ${accessToken}`
         }
       }
     );
@@ -40,7 +45,7 @@ export class SlackApi {
     return response.data;
   }
 
-  public async sendMessage(accessToken: string, channel: string, text: string, report_file_id?: string) {
+  public async sendMessage(channel: string, text: string, report_file_id?: string) {
     const response = await this.api.post("/chat.postMessage", 
       {
         channel: channel,
@@ -58,78 +63,52 @@ export class SlackApi {
             source: "remote"
           } : null
         ].filter(Boolean)
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
       }
     );
 
     return response.data;
   }
 
-  public async getUsersList(accessToken: string) {
-
-    const response = await this.api.get<UsersList>("/users.list", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    });
+  public async getUsersList() {
+    const response = await this.api.get<UsersList>("/users.list");
 
     return response.data;
-
   }
 
-  public async joinChannel(accessToken: string, channelId: string) {
-
+  public async joinChannel(channelId: string) {
     const response = await this.api.post("/conversations.join", 
       {
         channel: channelId
-      }, 
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
       }
     );
 
     return response.data;
   }
 
-  public async getTeamInfo(accessToken: string) {
-    
-    const response = await this.api.get("/team.info", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    });
+  public async getTeamInfo() {
+    const response = await this.api.get("/team.info");
 
     return response.data;
-
   }
 
-  public async getUploadUrl(accessToken: string, filename: string, length: number) {
+  public async getUploadUrl(filename: string, length: number) {
 
     const response = await this.api.get<{ok: boolean, upload_url: string, file_id: string}>("/files.getUploadURLExternal", {
       params: {
         filename: filename,
         length: length
-      },
-      headers: {
-        Authorization: `Bearer ${accessToken}`
       }
     });
 
     return response.data;
   }
 
-  public async uploadFile(accessToken: string, url: string, pdfBuffer: Buffer) {
+  public async uploadFile(url: string, pdfBuffer: Buffer) { // todo check here
 
     const response = await axios.post(url, pdfBuffer,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${this.accessToken}`,
           'Content-Type': 'application/pdf',
           'Content-Length': pdfBuffer.length.toString()
         }
@@ -139,16 +118,11 @@ export class SlackApi {
     return response.data;
   }
 
-  public async completeUpload(accessToken: string, files: {id: string, title: string}[]) {
+  public async completeUpload(files: {id: string, title: string}[]) {
 
     const response = await this.api.post("/files.completeUploadExternal", 
       {
         files: files
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
       }
     );
 
@@ -157,16 +131,3 @@ export class SlackApi {
 
 }
 
-interface UsersList {
-  members: Member[];
-}
-
-interface Member {
-  id: string;
-  profile: Profile;
-}
-
-interface Profile {
-  real_name: string;
-  image_48: string;
-}

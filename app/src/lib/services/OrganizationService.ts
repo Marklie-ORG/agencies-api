@@ -1,28 +1,12 @@
-import { ClientToken, Database, Organization, OrganizationClient, User } from "markly-ts-core";
-import { ClientTokenType, OrganizationRole } from "markly-ts-core/dist/lib/enums/enums.js";
-import { OrganizationInvite } from "markly-ts-core/dist/lib/entities/OrganizationInvite.js";
-import { OrganizationMember } from "markly-ts-core/dist/lib/entities/OrganizationMember.js";
-import { ClientFacebookAdAccount } from "markly-ts-core/dist/lib/entities/ClientFacebookAdAccount.js";
-import { AuthenticationUtil } from "markly-ts-core";
+import { ClientToken, Database, Organization, OrganizationClient, User } from "marklie-ts-core";
+import { ClientTokenType, OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
+import { OrganizationInvite } from "marklie-ts-core/dist/lib/entities/OrganizationInvite.js";
+import { OrganizationMember } from "marklie-ts-core/dist/lib/entities/OrganizationMember.js";
+import { ClientFacebookAdAccount } from "marklie-ts-core/dist/lib/entities/ClientFacebookAdAccount.js";
+import { AuthenticationUtil } from "marklie-ts-core";
 import { UserService } from "./UserService.js";
 import { SlackApi } from "lib/apis/SlackApi.js";
-
-
-interface Conversations {
-  channels: Channel[];
-  ims: IM[];
-}
-
-interface Channel {
-  id: string;
-  name: string;
-}
-
-interface IM {
-  id: string;
-  name: string;
-  image: string;
-}
+import type { Conversations, Channel, IM } from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
 
 const database = await Database.getInstance();
 
@@ -189,9 +173,9 @@ export class OrganizationService {
 
     const accessToken = clientToken.token;
 
-    const slackApi = new SlackApi();
-    const conversations = await slackApi.getConversationsList(accessToken);
-    const users = await slackApi.getUsersList(accessToken);
+    const slackApi = new SlackApi(accessToken);
+    const conversations = await slackApi.getConversationsList();
+    const users = await slackApi.getUsersList();
 
     channels = conversations.channels.map((channel: { id: string, name: string, is_channel: boolean }) => {
       if (channel.is_channel) {
@@ -205,7 +189,7 @@ export class OrganizationService {
       }
     }).filter((channel: any) => channel !== null);
 
-    ims = users.members.map((member) => {
+    ims = users.members.map((member: any) => {
       return {
         id: member.id,
         name: member.profile.real_name,
@@ -250,15 +234,15 @@ export class OrganizationService {
     if (isUserId) {
       client.slackConversationId = conversationId;
     }
-    else { // join channel before assigning it.
+    else {
       const clientToken = await database.em.findOne(ClientToken, { 
         organizationClient: organizationClientId,
         type: ClientTokenType.SLACK 
       });
       if (!clientToken) throw new Error("Slack token not found for client");
 
-      const slackApi = new SlackApi();
-      const response = await slackApi.joinChannel(clientToken.token, conversationId);
+      const slackApi = new SlackApi(clientToken.token);
+      const response = await slackApi.joinChannel(conversationId);
 
       if (!response.ok) {
         throw new Error("Failed to join Slack channel");
@@ -294,8 +278,8 @@ export class OrganizationService {
       throw new Error("Slack token not found for client");
     }
 
-    const slackApi = new SlackApi();
-    const response = await slackApi.sendMessage(clientToken.token, client.slackConversationId, message);
+    const slackApi = new SlackApi(clientToken.token);
+    const response = await slackApi.sendMessage(client.slackConversationId, message);
 
     return response;
   }
@@ -307,12 +291,10 @@ export class OrganizationService {
     }, {
       populate: ['organizationClient']
     });
-    
-    const slackApi = new SlackApi();
 
     const workspaces = await Promise.all(tokens.map(async (token: ClientToken) => {
-      
-      const response = await slackApi.getTeamInfo(token.token);
+      const slackApi = new SlackApi(token.token);
+      const response = await slackApi.getTeamInfo();
       return {
         clientName: token.organizationClient.name,
         clientId: token.organizationClient.uuid,
@@ -343,7 +325,7 @@ export class OrganizationService {
 
   async sendMessageWithFileToSlack(organizationClientId: string, message: string, pdfBuffer: Buffer, fileName: string) {
 
-    const slackApi = new SlackApi();
+    
 
     const client = await database.em.findOne(OrganizationClient, { 
       uuid: organizationClientId
@@ -358,25 +340,23 @@ export class OrganizationService {
       throw new Error("Slack token not found for client");
     }
 
+    const slackApi = new SlackApi(clientToken.token);
+
     const uploadUrl = await slackApi.getUploadUrl(
-      clientToken.token, 
       fileName, 
       pdfBuffer.length
     );
 
     await slackApi.uploadFile(
-      clientToken.token, 
       uploadUrl.upload_url, 
       pdfBuffer
     );
 
     await slackApi.completeUpload(
-      clientToken.token, 
       [{id: uploadUrl.file_id, title: fileName}]
     );
 
     const sendMessageResponse = await slackApi.sendMessage(
-      clientToken.token, 
       client.slackConversationId, 
       message, 
       uploadUrl.file_id

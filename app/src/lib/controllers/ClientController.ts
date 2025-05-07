@@ -1,10 +1,7 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import type { CreateClientRequest, CreateClientFacebookAdAccountRequest, SetSlackConversationIdRequest, SendMessageToSlackRequest, SetSlackWorkspaceTokenRequest, SendMessageWithFileToSlackRequest } from "markly-ts-core/dist/lib/interfaces/ClientInterfaces.js";
+import type { CreateClientRequest, CreateClientFacebookAdAccountRequest, SetSlackConversationIdRequest, SendMessageToSlackRequest, SetSlackWorkspaceTokenRequest, SendMessageWithFileToSlackRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { OrganizationService } from "lib/services/OrganizationService.js";
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 export class ClientController extends Router {
   private readonly organizationService: OrganizationService;
@@ -98,45 +95,6 @@ export class ClientController extends Router {
 
     const conversations = await this.organizationService.getAvailableSlackConversations(clientUuid);
 
-  //   const conversations = {
-  //     "channels": [
-  //         {
-  //             "id": "C08PMRJJ5MJ",
-  //             "name": "new-channel"
-  //         },
-  //         {
-  //             "id": "C08Q6UXTK6C",
-  //             "name": "all-test"
-  //         },
-  //         {
-  //             "id": "C08Q6UXUQL8",
-  //             "name": "social"
-  //         }
-  //     ],
-  //     "ims": [
-  //         {
-  //             "id": "USLACKBOT",
-  //             "name": "Slackbot",
-  //             "image": "https://a.slack-edge.com/80588/img/slackbot_48.png"
-  //         },
-  //         {
-  //             "id": "U08PMDJDUSE",
-  //             "name": "Oleksii",
-  //             "image": "https://secure.gravatar.com/avatar/ec1a41a197610931a4d99a1a977b251d.jpg?s=48&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0018-48.png"
-  //         },
-  //         {
-  //             "id": "U08PN5X5AG4",
-  //             "name": "Marklie",
-  //             "image": "https://avatars.slack-edge.com/2025-04-30/8824534072693_08fe5b91b4f3096398f4_48.png"
-  //         },
-  //         {
-  //             "id": "U08Q6UXN656",
-  //             "name": "derevyanko.andrew2004",
-  //             "image": "https://avatars.slack-edge.com/2025-04-24/8803583886659_3e1330dd8a7dafd75c08_48.png"
-  //         }
-  //     ]
-  // }
-
     ctx.body = conversations;
     ctx.status = 200;
   }
@@ -192,15 +150,7 @@ export class ClientController extends Router {
     const clientUuid = ctx.params.clientUuid;
     const body = ctx.request.body as SendMessageWithFileToSlackRequest;
 
-    const fileName = 'Marklie.pdf'
-
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const filePath = join(__dirname, fileName);
-    const pdfBuffer = fs.readFileSync(filePath);
-    console.log(pdfBuffer)
-
-    await this.organizationService.sendMessageWithFileToSlack(clientUuid, body.message, pdfBuffer, fileName);
+    await this.organizationService.sendMessageWithFileToSlack(clientUuid, body.message, body.pdfBuffer, body.fileName);
 
     ctx.body = { message: "Message sent to Slack successfully." };
     ctx.status = 200;

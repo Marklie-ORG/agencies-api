@@ -1,5 +1,5 @@
-import { Database, OrganizationToken, User } from "markly-ts-core";
-import { OrganizationTokenType } from "markly-ts-core/dist/lib/enums/enums.js";
+import { Database, OrganizationToken, User } from "marklie-ts-core";
+import { OrganizationTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 
 const database = await Database.getInstance();
 

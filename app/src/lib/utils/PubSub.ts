@@ -1,5 +1,5 @@
 import { PubSub, Topic, Subscription } from "@google-cloud/pubsub";
-import { Log } from "markly-ts-core";
+import { Log } from "marklie-ts-core";
 
 const logger: Log = Log.getInstance().extend("pub-sub");
 

@@ -1,13 +1,14 @@
 import Router from "koa-router";
 import type { Context } from "koa";
 import { UserService } from "../services/UserService.js";
-import type { SetActiveOrganizationRequest, SetNameRequest, HandleFacebookLoginRequest, HandleSlackLoginRequest } from "markly-ts-core/dist/lib/interfaces/UserInterfaces.js";
-import { User } from "markly-ts-core";
+import type { SetActiveOrganizationRequest, SetNameRequest, HandleFacebookLoginRequest, HandleSlackLoginRequest } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
+import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { AgencyService } from "lib/services/AgencyService.js";
 import { SlackApi } from "lib/apis/SlackApi.js";
 import { OrganizationService } from "lib/services/OrganizationService.js";
-import { ClientTokenType } from "markly-ts-core/dist/lib/enums/enums.js";
+import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
+
 export class UserController extends Router {
   private readonly userService: UserService;
   private readonly agencyService: AgencyService;
@@ -82,8 +83,6 @@ export class UserController extends Router {
       body.code,
       body.redirectUri
     );
-
-    console.log(data);
 
     this.organizationService.createClientToken(data.access_token, body.organizationClientId, ClientTokenType.SLACK);
 
