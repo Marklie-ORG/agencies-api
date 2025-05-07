@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import type { CreateOrganizationRequest, UseInviteCodeRequest } from "markly-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
+import type { CreateOrganizationRequest, UseInviteCodeRequest } from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
 import { OrganizationService } from "../services/OrganizationService.js";
 
 export class OrganizationController extends Router {

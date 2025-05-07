@@ -1,4 +1,4 @@
-import { Database, Log, Organization } from "markly-ts-core";
+import { Database, Log, Organization } from "marklie-ts-core";
 
 const logger: Log = Log.getInstance().extend("notifications-util");
 const database = await Database.getInstance();

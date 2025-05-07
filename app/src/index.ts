@@ -12,10 +12,11 @@ import {
   ErrorMiddleware,
   Log,
   ValidationMiddleware,
-} from "markly-ts-core";
+} from "marklie-ts-core";
 import { OnboardingController } from "lib/controllers/OnboardingController.js";
 import { OrganizationController } from "lib/controllers/OrganizationController.js";
 import { ClientController } from "lib/controllers/ClientController.js";
+
 const app = new Koa();
 
 const logger: Log = Log.getInstance().extend("service");
@@ -25,15 +26,13 @@ await database.orm.connect().then(() => {
   logger.info("Database has connected!");
 });
 
-// await database.orm.getSchemaGenerator().updateSchema();
-
 app.use(
   cors({
     origin: (ctx) => {
       const allowedOrigins = [
         "http://localhost:4200", 
         "https://marklie.com", 
-        "https://ddc1-77-174-130-35.ngrok-free.app"];
+        "https://ae08-77-174-130-35.ngrok-free.app"];
       const requestOrigin = ctx.request.header.origin;
       if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
         return requestOrigin;

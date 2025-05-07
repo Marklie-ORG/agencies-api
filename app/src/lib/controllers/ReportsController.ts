@@ -1,9 +1,9 @@
 import Router from "koa-router";
 import type { Context } from "koa";
 import { PubSubWrapper } from "../utils/PubSub.js";
-import { OrganizationRole } from "markly-ts-core/dist/lib/enums/enums.js";
-import { RoleMiddleware } from "markly-ts-core";
-import type { ReportScheduleRequest } from "markly-ts-core/dist/lib/interfaces/ReportsInterfaces.js";
+import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
+import { RoleMiddleware } from "marklie-ts-core";
+import type { ReportScheduleRequest } from "marklie-ts-core/dist/lib/interfaces/ReportsInterfaces.js";
 
 export class ReportsController extends Router {
   constructor() {

@@ -1,8 +1,9 @@
-import { Database, Organization, User } from "markly-ts-core";
+import { Database, Organization, User } from "marklie-ts-core";
 
 const database = await Database.getInstance();
 
 export class UserService {
+
   async setActiveOrganization(
     activeOrganizationUuid: string,
     user: User,
