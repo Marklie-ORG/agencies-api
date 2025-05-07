@@ -7,6 +7,8 @@ import { AuthenticationUtil } from "marklie-ts-core";
 import { UserService } from "./UserService.js";
 import { SlackApi } from "lib/apis/SlackApi.js";
 import type { Conversations, Channel, IM } from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
+import type { UpdateClientRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
+
 
 const database = await Database.getInstance();
 
@@ -97,7 +99,7 @@ export class OrganizationService {
     await database.em.persistAndFlush([orgMember, user, invite]);
   }
 
-  async createOrganizationClient(name: string, activeOrganizationUuid: string): Promise<OrganizationClient> {
+  async createClient(name: string, activeOrganizationUuid: string): Promise<OrganizationClient> {
     const newClient = database.em.create(OrganizationClient, {
         name: name,
         organization: activeOrganizationUuid
@@ -108,7 +110,7 @@ export class OrganizationService {
     return newClient;
   }
 
-  async getOrganizationClients(activeOrganizationUuid: string) {
+  async getClients(activeOrganizationUuid: string) {
     const clients = await database.em.find(OrganizationClient, { organization: activeOrganizationUuid });
     return clients;
   }
@@ -116,6 +118,24 @@ export class OrganizationService {
   async getClient(clientUuid: string) {
     const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
     return client;
+  }
+
+  async updateClient(clientUuid: string, client: UpdateClientRequest) {
+    const existingClient = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    if (!existingClient) {
+      throw new Error("Client not found");
+    }
+
+    if (client.name !== undefined) {
+      existingClient.name = client.name;
+    }
+
+    if (client.emails !== undefined) {
+      existingClient.emails = client.emails;
+    }
+
+    await database.em.persistAndFlush(existingClient);
+    return existingClient;
   }
 
   async getClientFacebookAdAccounts(clientUuid: string) {

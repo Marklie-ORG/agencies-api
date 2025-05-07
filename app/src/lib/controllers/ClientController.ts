@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import type { CreateClientRequest, CreateClientFacebookAdAccountRequest, SetSlackConversationIdRequest, SendMessageToSlackRequest, SetSlackWorkspaceTokenRequest, SendMessageWithFileToSlackRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
+import type { CreateClientRequest, UpdateClientRequest, CreateClientFacebookAdAccountRequest, SetSlackConversationIdRequest, SendMessageToSlackRequest, SetSlackWorkspaceTokenRequest, SendMessageWithFileToSlackRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { OrganizationService } from "lib/services/OrganizationService.js";
 
 export class ClientController extends Router {
@@ -15,6 +15,8 @@ export class ClientController extends Router {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
     this.get("/:clientUuid", this.getClient.bind(this));
+    this.put("/:clientUuid", this.updateClient.bind(this));
+    
     this.get("/:clientUuid/ad-accounts", this.getClientFacebookAdAccounts.bind(this));
     this.post("/:clientUuid/ad-accounts", this.createClientFacebookAdAccount.bind(this));
     this.delete("/:clientUuid/ad-accounts/:adAccountId", this.deleteClientFacebookAdAccount.bind(this));
@@ -32,7 +34,7 @@ export class ClientController extends Router {
     const body = ctx.request.body as CreateClientRequest;
     const user = ctx.state.user;
 
-    const client = await this.organizationService.createOrganizationClient(body.name, user.activeOrganization.uuid);
+    const client = await this.organizationService.createClient(body.name, user.activeOrganization.uuid);
 
     if (body.facebookAdAccounts.length > 0) {
       for (const adAccountId of body.facebookAdAccounts) {
@@ -47,7 +49,7 @@ export class ClientController extends Router {
   private async getClients(ctx: Context) {
     const user = ctx.state.user;
 
-    const clients = await this.organizationService.getOrganizationClients(user.activeOrganization);
+    const clients = await this.organizationService.getClients(user.activeOrganization);
 
     ctx.body = clients;
     ctx.status = 200;
@@ -56,6 +58,16 @@ export class ClientController extends Router {
   private async getClient(ctx: Context) {
     const clientUuid = ctx.params.clientUuid;
     const client = await this.organizationService.getClient(clientUuid);
+
+    ctx.body = client;
+    ctx.status = 200;
+  }
+
+  private async updateClient(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+    const body = ctx.request.body as UpdateClientRequest;
+
+    const client = await this.organizationService.updateClient(clientUuid, body);
 
     ctx.body = client;
     ctx.status = 200;
