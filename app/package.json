@@ -16,11 +16,11 @@
     "start:dev": "npm run watch"
   },
   "dependencies": {
-    "@google-cloud/pubsub": "^4.11.0",
     "@koa/cors": "^5.0.0",
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.45.2",
+    "cronstrue": "^2.60.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
     "marklie-ts-core": "1.1.10",
