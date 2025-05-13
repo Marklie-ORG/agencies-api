@@ -17,11 +17,11 @@
     "update:core": "pnpm store prune && cd .. && cd .. && cd markly-ts-core && npm run build && pnpm pack && cd .. && cd agencies-api && cd app && pnpm i ../../markly-ts-core/marklie-ts-core-1.1.10.tgz && npm run start:dev"
   },
   "dependencies": {
-    "@google-cloud/pubsub": "^4.11.0",
     "@koa/cors": "^5.0.0",
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.45.2",
+    "cronstrue": "^2.60.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
     "marklie-ts-core": "file:../../markly-ts-core/marklie-ts-core-1.1.10.tgz",

@@ -1,7 +1,6 @@
 import Koa from "koa";
 import koabodyparser from "koa-bodyparser";
 import cors from "@koa/cors";
-import { ReportsController } from "./lib/controllers/ReportsController.js";
 import { AuthController } from "./lib/controllers/AuthenticationController.js";
 import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
 import { UserController } from "./lib/controllers/UserController.js";
@@ -30,9 +29,10 @@ app.use(
   cors({
     origin: (ctx) => {
       const allowedOrigins = [
-        "http://localhost:4200", 
-        "https://marklie.com", 
-        "https://ae08-77-174-130-35.ngrok-free.app"];
+        "http://localhost:4200",
+        "https://marklie.com",
+        "https://ae08-77-174-130-35.ngrok-free.app",
+      ];
       const requestOrigin = ctx.request.header.origin;
       if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
         return requestOrigin;
@@ -47,9 +47,6 @@ app.use(CookiesMiddleware);
 app.use(AuthMiddleware());
 app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
-app
-  .use(new ReportsController().routes())
-  .use(new ReportsController().allowedMethods());
 
 app
   .use(new UserController().routes())
@@ -75,7 +72,6 @@ app
   .use(new ClientController().routes())
   .use(new ClientController().allowedMethods());
 
-  // '0.0.0.0',
 app.listen(3001, () => {
   logger.info(`Auth server is running at ${3001}`);
 });
