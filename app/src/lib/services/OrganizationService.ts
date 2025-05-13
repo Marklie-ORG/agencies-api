@@ -8,6 +8,7 @@ import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { AuthenticationUtil, Database } from "marklie-ts-core";
 import { UserService } from "./UserService.js";
 
+
 const database = await Database.getInstance();
 
 export class OrganizationService {
@@ -63,6 +64,7 @@ export class OrganizationService {
     invite.usedBy = user.uuid;
 
     await database.em.persistAndFlush([member, user, invite]);
+
   }
 
   private generateRandomCode(length: number): string {

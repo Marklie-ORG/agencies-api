@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import type { Context } from "koa";
+
 import type {
   CreateClientFacebookAdAccountRequest,
   CreateClientRequest,
@@ -9,6 +10,7 @@ import type {
 import { ClientService } from "../services/ClientService.js";
 import { SlackService } from "../services/SlackService.js";
 import { TokenService } from "../services/TokenService.js";
+
 
 export class ClientController extends Router {
   private readonly clientsService: ClientService;
@@ -24,6 +26,7 @@ export class ClientController extends Router {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
     this.get("/:clientUuid", this.getClient.bind(this));
+
     this.get(
       "/:clientUuid/ad-accounts",
       this.getClientFacebookAdAccounts.bind(this),
@@ -57,6 +60,7 @@ export class ClientController extends Router {
       "/:clientUuid/slack/workspace-token",
       this.setSlackWorkspaceToken.bind(this),
     );
+
   }
 
   private async createClient(ctx: Context) {
@@ -85,12 +89,23 @@ export class ClientController extends Router {
     const user = ctx.state.user;
 
     ctx.body = await this.clientsService.getClients(user.activeOrganization);
+
     ctx.status = 200;
   }
 
   private async getClient(ctx: Context) {
     const clientUuid = ctx.params.clientUuid;
     ctx.body = await this.clientsService.getClient(clientUuid);
+    ctx.status = 200;
+  }
+
+  private async updateClient(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+    const body = ctx.request.body as UpdateClientRequest;
+
+    const client = await this.organizationService.updateClient(clientUuid, body);
+
+    ctx.body = client;
     ctx.status = 200;
   }
 
