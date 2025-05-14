@@ -6,6 +6,7 @@ import type {
   CreateClientRequest,
   SetSlackConversationIdRequest,
   SetSlackWorkspaceTokenRequest,
+  UpdateClientRequest,
 } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { ClientService } from "../services/ClientService.js";
 import { SlackService } from "../services/SlackService.js";
@@ -26,6 +27,7 @@ export class ClientController extends Router {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
     this.get("/:clientUuid", this.getClient.bind(this));
+    this.put("/:clientUuid", this.updateClient.bind(this));
 
     this.get(
       "/:clientUuid/ad-accounts",
@@ -103,7 +105,7 @@ export class ClientController extends Router {
     const clientUuid = ctx.params.clientUuid;
     const body = ctx.request.body as UpdateClientRequest;
 
-    const client = await this.organizationService.updateClient(clientUuid, body);
+    const client = await this.clientsService.updateClient(clientUuid, body);
 
     ctx.body = client;
     ctx.status = 200;

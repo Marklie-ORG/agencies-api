@@ -9,6 +9,7 @@ import cronstrue from "cronstrue";
 import { TokenService } from "./TokenService";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 import type { SlackService } from "./SlackService.js";
+import type { UpdateClientRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces";
 
 const database = await Database.getInstance();
 
@@ -25,6 +26,24 @@ export class ClientService {
     });
     await database.em.persistAndFlush(client);
     return client;
+  }
+
+  async updateClient(clientUuid: string, client: UpdateClientRequest) {
+    const existingClient = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    if (!existingClient) {
+      throw new Error("Client not found");
+    }
+
+    if (client.name !== undefined) {
+      existingClient.name = client.name;
+    }
+
+    if (client.emails !== undefined) {
+      existingClient.emails = client.emails;
+    }
+
+    await database.em.persistAndFlush(existingClient);
+    return existingClient;
   }
 
   async getClients(orgUuid: string) {
@@ -66,6 +85,7 @@ export class ClientService {
     return {
       uuid: client.uuid,
       name: client.name,
+      emails: client.emails,
       adAccountId: "",
       crons:
         client.schedulingOption?.getItems().map((opt: SchedulingOption) => ({
