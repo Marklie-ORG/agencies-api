@@ -26,6 +26,27 @@ export class UserService {
     await database.em.persistAndFlush(user);
   }
 
+
+  async changePassword(
+    password: string,
+    newPassword: string,
+    user: User,
+  ): Promise<void> {
+
+    const { accessToken, refreshToken } = await AuthenticationUtil.login({
+      email: user.email,
+      password: password,
+    });
+
+    if (!accessToken || !refreshToken) {
+      throw new Error("Invalid password");
+    }
+
+    user.password = newPassword;
+
+    await database.em.persistAndFlush(user);
+  }
+
   async sendChangeEmailEmail(
     newEmail: string,
     password: string,

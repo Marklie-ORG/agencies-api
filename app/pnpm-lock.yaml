@@ -1,62 +1,4 @@
-lockfileVersion: 5.4
 
-specifiers:
-  '@koa/cors': ^5.0.0
-  '@swc/cli': ^0.6.0
-  '@swc/core': ^1.10.7
-  '@types/jsonwebtoken': ^9.0.7
-  '@types/koa': ^2.13.5
-  '@types/koa-bodyparser': ^4.3.12
-  '@types/koa-router': ^7.4.4
-  '@types/koa__cors': ^5.0.0
-  '@types/luxon': ^3.6.0
-  '@types/node': ^22.10.10
-  axios: ^1.8.2
-  bcryptjs: ^3.0.2
-  bullmq: ^5.45.2
-  cronstrue: ^2.60.0
-  ioredis: ^5.4.2
-  jsonwebtoken: ^9.0.2
-  koa: ^2.13.4
-  koa-body: ^6.0.1
-  koa-bodyparser: ^4.3.0
-  koa-json: ^2.0.2
-  koa-router: ^13.0.1
-  luxon: ^3.6.1
-  marklie-ts-core: file:../../markly-ts-core/marklie-ts-core-1.1.13.tgz
-  prettier: 3.4.2
-  typescript: ^5.7.3
-  uuid: ^11.1.0
-
-dependencies:
-  '@koa/cors': 5.0.0
-  axios: 1.8.4
-  bcryptjs: 3.0.2
-  bullmq: 5.48.1
-  cronstrue: 2.61.0
-  ioredis: 5.6.1
-  jsonwebtoken: 9.0.2
-  marklie-ts-core: file:../../markly-ts-core/marklie-ts-core-1.1.13.tgz
-  uuid: 11.1.0
-
-devDependencies:
-  '@swc/cli': 0.6.0_@swc+core@1.11.20
-  '@swc/core': 1.11.20
-  '@types/jsonwebtoken': 9.0.9
-  '@types/koa': 2.15.0
-  '@types/koa-bodyparser': 4.3.12
-  '@types/koa-router': 7.4.8
-  '@types/koa__cors': 5.0.0
-  '@types/luxon': 3.6.2
-  '@types/node': 22.14.1
-  koa: 2.16.1
-  koa-body: 6.0.1
-  koa-bodyparser: 4.4.1
-  koa-json: 2.0.2
-  koa-router: 13.0.1
-  luxon: 3.6.1
-  prettier: 3.4.2
-  typescript: 5.8.3
 
 packages:
 
@@ -3597,51 +3539,11 @@ packages:
     dependencies:
       buffer-crc32: 0.2.13
       pend: 1.2.0
-    dev: true
 
-  /ylru/1.4.0:
-    resolution: {integrity: sha512-2OQsPNEmBCvXuFlIni/a+Rn+R2pHW9INm0BxXJ4hVDA8TirqMj+J/Rp9ItLatT/5pZqWwefVrTQcHpixsxnVlA==}
-    engines: {node: '>= 4.0.0'}
-    dev: true
+  ylru@1.3.2: {}
 
-  /yocto-queue/0.1.0:
-    resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
-    engines: {node: '>=10'}
-    dev: false
+  yocto-queue@0.1.0: {}
 
-  /zod/3.24.2:
-    resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
-  file:../../markly-ts-core/marklie-ts-core-1.1.13.tgz:
-    resolution: {integrity: sha512-XTDi/cF6AXmbXljoifaG9TAn1LhlgJXJ3QTAp4TLH9mBkq0tBoEb+y3dXK2fHD+1Juakk8vSynFlKiL3SM7NdA==, tarball: file:../../markly-ts-core/marklie-ts-core-1.1.13.tgz}
-    name: marklie-ts-core
-    version: 1.1.13
-    dependencies:
-      '@google-cloud/pubsub': 4.11.0
-      '@google-cloud/secret-manager': 6.0.1
-      '@google-cloud/storage': 7.16.0
-      '@mikro-orm/core': 6.4.12
-      '@mikro-orm/postgresql': 6.4.12_@mikro-orm+core@6.4.12
-      '@mikro-orm/reflection': 6.4.12_@mikro-orm+core@6.4.12
-      axios: 1.8.4
-      bcryptjs: 3.0.2
-      bullmq: 5.48.1
-      ioredis: 5.6.1
-      jsonwebtoken: 9.0.2
-      path-to-regexp: 8.2.0
-      uuid: 11.1.0
-      winston: 3.17.0
-      zod: 3.24.2
-    transitivePeerDependencies:
-      - better-sqlite3
-      - debug
-      - encoding
-      - libsql
-      - mariadb
-      - mysql
-      - mysql2
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-    dev: false
+  zod@3.24.2: {}
+
