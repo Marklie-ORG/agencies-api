@@ -1,5 +1,4 @@
-import { AuthenticationUtil, Database, Organization, User } from "marklie-ts-core";
-import { EmailService } from "./EmailService.js";
+import { AuthenticationUtil, Database, Organization, PubSubWrapper, User } from "marklie-ts-core";
 import { ChangeEmailToken } from "marklie-ts-core/dist/lib/entities/ChangeEmailToken.js";
 
 const database = await Database.getInstance();
@@ -54,7 +53,14 @@ export class UserService {
     });
     await database.em.persistAndFlush(token);
     
-    EmailService.sendEmail(newEmail, emailChangeToken);
+    const payload = {
+      email: newEmail,
+      token: token,
+    };
+
+    const topic = "notification-send-change-email-sub";
+
+    await PubSubWrapper.publishMessage(topic, payload);
 
   }
 
