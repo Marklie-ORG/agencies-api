@@ -1,6 +1,6 @@
 import { AuthenticationUtil, Database, Organization, PubSubWrapper, User } from "marklie-ts-core";
 import { ChangeEmailToken } from "marklie-ts-core/dist/lib/entities/ChangeEmailToken.js";
-
+import { PasswordRecoveryToken } from "marklie-ts-core/dist/lib/entities/PasswordRecoveryToken.js";
 const database = await Database.getInstance();
 
 export class UserService {
@@ -100,6 +100,71 @@ export class UserService {
 
     user.email = newEmail;
     await database.em.persistAndFlush(user);
+
+  }
+
+  async sendPasswordRecoveryEmail(
+    email: string,
+  ): Promise<void> {
+
+    if (!email) {
+      throw new Error("Email cannot be empty");
+    }
+
+    const user = await database.em.findOne(User, { email });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    const passwordRecoveryToken = AuthenticationUtil.signPasswordRecoveryToken(user);
+    
+    const token = database.em.create(PasswordRecoveryToken, {
+      token: passwordRecoveryToken,
+      user: user,
+    });
+    await database.em.persistAndFlush(token);
+    
+    const payload = {
+      token: passwordRecoveryToken,
+      email: email
+    };
+
+    const topic = "notification-send-password-recovery-email";
+
+    await PubSubWrapper.publishMessage(topic, payload);
+
+  }
+
+  async verifyPasswordRecovery(token: string, newPassword: string): Promise<void> {
+
+    const { userUuid, isExpired, toRecoverPassword, passwordRecoveryToken } = await AuthenticationUtil.verifyPasswordRecoveryToken(token);
+
+    if (isExpired) {
+      throw new Error("Token expired");
+    }
+
+    if (!toRecoverPassword) {
+      throw new Error("Token is not for password recovery");
+    }
+
+    const user = await database.em.findOne(User, { uuid: userUuid });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const existingToken = await database.em.findOne(PasswordRecoveryToken, { token: passwordRecoveryToken });
+    if (existingToken.isUsed) {
+      throw new Error("Token already used");
+    }
+
+    user.password = newPassword;
+
+    await database.em.persistAndFlush(user);
+
+    existingToken.isUsed = true;
+
+    await database.em.persistAndFlush(existingToken);
 
   }
 

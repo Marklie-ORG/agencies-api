@@ -8,7 +8,9 @@ import type {
   HandleSlackLoginRequest,
   VerifyEmailChangeRequest,
   ChangeEmailRequest,
-  ChangePasswordRequest
+  ChangePasswordRequest,
+  SendPasswordRecoveryEmailRequest,
+  VerifyPasswordRecoveryRequest
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
@@ -42,6 +44,8 @@ export class UserController extends Router {
     this.post("/send-change-email-email", this.sendChangeEmailEmail.bind(this));
     this.post("/verify-email-change", this.verifyEmailChange.bind(this));
     this.post("/change-password", this.changePassword.bind(this));
+    this.post("/send-password-recovery-email", this.sendPasswordRecoveryEmail.bind(this));
+    this.post("/verify-password-recovery", this.verifyPasswordRecovery.bind(this));
   }
 
   private async verifyEmailChange(ctx: Context) {
@@ -61,6 +65,24 @@ export class UserController extends Router {
     await this.userService.sendChangeEmailEmail(body.email, body.password, user);
 
     ctx.body = { message: "Email sent successfully." };
+    ctx.status = 200;
+  }
+
+  private async sendPasswordRecoveryEmail(ctx: Context) {
+    const body = ctx.request.body as SendPasswordRecoveryEmailRequest;
+
+    await this.userService.sendPasswordRecoveryEmail(body.email);
+
+    ctx.body = { message: "Email sent successfully." };
+    ctx.status = 200;
+  }
+
+  private async verifyPasswordRecovery(ctx: Context) {
+    const body = ctx.request.body as VerifyPasswordRecoveryRequest;
+
+    await this.userService.verifyPasswordRecovery(body.token, body.newPassword);
+
+    ctx.body = { message: "Password recovered successfully." };
     ctx.status = 200;
   }
 
