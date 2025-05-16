@@ -6,6 +6,8 @@ import type {
   SetNameRequest,
   HandleFacebookLoginRequest,
   HandleSlackLoginRequest,
+  VerifyEmailChangeRequest,
+  ChangeEmailRequest
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
@@ -36,6 +38,28 @@ export class UserController extends Router {
     this.post("/name", this.setName.bind(this));
     this.post("/handle-facebook-login", this.handleFacebookLogin.bind(this));
     this.post("/handle-slack-login", this.handleSlackLogin.bind(this));
+    this.post("/send-change-email-email", this.sendChangeEmailEmail.bind(this));
+    this.post("/verify-email-change", this.verifyEmailChange.bind(this));
+  }
+
+  private async verifyEmailChange(ctx: Context) {
+    const body = ctx.request.body as VerifyEmailChangeRequest;
+
+    await this.userService.verifyEmailChange(body.token);
+
+    ctx.body = { message: "Email changed successfully." };
+    ctx.status = 200;
+  }
+
+  
+  private async sendChangeEmailEmail(ctx: Context) {
+    const body = ctx.request.body as ChangeEmailRequest;
+    const user: User = ctx.state.user as User;
+
+    await this.userService.sendChangeEmailEmail(body.email, body.password, user);
+
+    ctx.body = { message: "Email sent successfully." };
+    ctx.status = 200;
   }
 
   private async setActiveOrganization(ctx: Context) {
