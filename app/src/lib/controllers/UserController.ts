@@ -7,7 +7,8 @@ import type {
   HandleFacebookLoginRequest,
   HandleSlackLoginRequest,
   VerifyEmailChangeRequest,
-  ChangeEmailRequest
+  ChangeEmailRequest,
+  ChangePasswordRequest
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
@@ -40,6 +41,7 @@ export class UserController extends Router {
     this.post("/handle-slack-login", this.handleSlackLogin.bind(this));
     this.post("/send-change-email-email", this.sendChangeEmailEmail.bind(this));
     this.post("/verify-email-change", this.verifyEmailChange.bind(this));
+    this.post("/change-password", this.changePassword.bind(this));
   }
 
   private async verifyEmailChange(ctx: Context) {
@@ -118,6 +120,16 @@ export class UserController extends Router {
     );
 
     ctx.body = { message: "Access token retrieved successfully." };
+    ctx.status = 200;
+  }
+
+  private async changePassword(ctx: Context) {
+    const body = ctx.request.body as ChangePasswordRequest;
+    const user: User = ctx.state.user as User;
+
+    await this.userService.changePassword(body.password, body.newPassword, user);
+
+    ctx.body = { message: "Password changed successfully." };
     ctx.status = 200;
   }
 }
