@@ -1,4 +1,92 @@
+lockfileVersion: '9.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@koa/cors':
+        specifier: ^5.0.0
+        version: 5.0.0
+      axios:
+        specifier: ^1.8.2
+        version: 1.8.2
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
+      bullmq:
+        specifier: ^5.45.2
+        version: 5.45.2
+      cronstrue:
+        specifier: ^2.60.0
+        version: 2.60.0
+      ioredis:
+        specifier: ^5.4.2
+        version: 5.4.2
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
+      marklie-ts-core:
+        specifier: 1.1.13
+        version: 1.1.13
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
+    devDependencies:
+      '@swc/cli':
+        specifier: ^0.6.0
+        version: 0.6.0(@swc/core@1.10.9)
+      '@swc/core':
+        specifier: ^1.10.7
+        version: 1.10.9
+      '@types/jsonwebtoken':
+        specifier: ^9.0.7
+        version: 9.0.8
+      '@types/koa':
+        specifier: ^2.13.5
+        version: 2.13.5
+      '@types/koa-bodyparser':
+        specifier: ^4.3.12
+        version: 4.3.12
+      '@types/koa-router':
+        specifier: ^7.4.4
+        version: 7.4.4
+      '@types/koa__cors':
+        specifier: ^5.0.0
+        version: 5.0.0
+      '@types/luxon':
+        specifier: ^3.6.0
+        version: 3.6.0
+      '@types/node':
+        specifier: ^22.10.10
+        version: 22.10.10
+      koa:
+        specifier: ^2.13.4
+        version: 2.16.1
+      koa-body:
+        specifier: ^6.0.1
+        version: 6.0.1
+      koa-bodyparser:
+        specifier: ^4.3.0
+        version: 4.3.0
+      koa-json:
+        specifier: ^2.0.2
+        version: 2.0.2
+      koa-router:
+        specifier: ^13.0.1
+        version: 13.0.1
+      luxon:
+        specifier: ^3.6.1
+        version: 3.6.1
+      prettier:
+        specifier: 3.4.2
+        version: 3.4.2
+      typescript:
+        specifier: ^5.7.3
+        version: 5.7.3
 
 packages:
 
@@ -1375,8 +1463,8 @@ packages:
     resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
     engines: {node: '>=10'}
 
-  marklie-ts-core@1.1.10:
-    resolution: {integrity: sha512-q2Mw5Nkc6ATV6PzypB7708Y0nwKgWI4oOUNwc8wHbnYazOuilCtkvvPMiPmAvG921swxZg7KdZa9FWCo21uf9g==}
+  marklie-ts-core@1.1.13:
+    resolution: {integrity: sha512-IHjLB1kWj+pmoKVLD8HwIpgDwZ9u9aCrzKKXzZ0MlQN75FVM2gaNvIYKQdUwFg7poYVXfeMshhqus4euaHSheA==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -3545,7 +3633,7 @@ snapshots:
     dependencies:
       semver: 7.5.4
 
-  marklie-ts-core@1.1.10:
+  marklie-ts-core@1.1.13:
     dependencies:
       '@google-cloud/pubsub': 4.11.0
       '@google-cloud/secret-manager': 6.0.1
@@ -4161,6 +4249,4 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-
   zod@3.24.2: {}
-
