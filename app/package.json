@@ -22,7 +22,7 @@
     "cronstrue": "^2.60.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "marklie-ts-core": "1.2.1",
+    "marklie-ts-core": "1.2.2",
     "uuid": "^11.1.0",
     "dotenv": "^16.5.0"
   },
