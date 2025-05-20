@@ -46,6 +46,14 @@ export class UserController extends Router {
     this.post("/change-password", this.changePassword.bind(this));
     this.post("/send-password-recovery-email", this.sendPasswordRecoveryEmail.bind(this));
     this.post("/verify-password-recovery", this.verifyPasswordRecovery.bind(this));
+    this.get("/me", this.me.bind(this));
+  }
+
+  private async me(ctx: Context) {
+    const user: User = ctx.state.user as User;
+
+    ctx.body = user;
+    ctx.status = 200;
   }
 
   private async verifyEmailChange(ctx: Context) {
