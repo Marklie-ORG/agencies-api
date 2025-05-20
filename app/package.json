@@ -23,7 +23,8 @@
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
     "marklie-ts-core": "1.2.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.6.0",
