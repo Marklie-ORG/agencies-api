@@ -150,8 +150,8 @@ export class UserController extends Router {
     const data = await slackApi.handleSlackLogin(body.code, body.redirectUri);
 
     await this.clientService.createToken(
-      data.access_token,
       body.organizationClientId,
+      data.access_token,
       ClientTokenType.SLACK,
     );
 
