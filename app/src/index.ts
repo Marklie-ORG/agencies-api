@@ -1,26 +1,78 @@
 import Koa from "koa";
 import koabodyparser from "koa-bodyparser";
-import { ValidationMiddleware } from "./lib/middlewares/ValidationMiddleware.js";
-import { ReportsController } from "./lib/controllers/ReportsController.js";
-import { ErrorMiddleware } from "./lib/middlewares/ErrorMiddleware.js";
-import { orm } from "./lib/db/config/DB.js";
+import "dotenv/config";
+import cors from "@koa/cors";
+import { AuthController } from "./lib/controllers/AuthenticationController.js";
+import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
+import { UserController } from "./lib/controllers/UserController.js";
+import {
+  AuthMiddleware,
+  CookiesMiddleware,
+  Database,
+  ErrorMiddleware,
+  Log,
+  ValidationMiddleware,
+} from "marklie-ts-core";
+import { OnboardingController } from "lib/controllers/OnboardingController.js";
+import { OrganizationController } from "lib/controllers/OrganizationController.js";
+import { ClientController } from "lib/controllers/ClientController.js";
 
 const app = new Koa();
 
-await orm.connect().then(() => {
-  console.log("Database has connected!");
+const logger: Log = Log.getInstance().extend("service");
+const database = await Database.getInstance();
+
+await database.orm.connect().then(() => {
+  logger.info("Database has connected!");
 });
 
+app.use(
+  cors({
+    origin: (ctx) => {
+      const allowedOrigins = [
+        "http://localhost:4200",
+        "https://marklie.com",
+        "https://ae08-77-174-130-35.ngrok-free.app",
+      ];
+      const requestOrigin = ctx.request.header.origin;
+      if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+        return requestOrigin;
+      }
+      return allowedOrigins[0];
+    },
+    credentials: true,
+  }),
+);
 app.use(koabodyparser());
-app.use(ErrorMiddleware());
+app.use(CookiesMiddleware);
+app.use(AuthMiddleware());
 app.use(ValidationMiddleware());
-app.use(koabodyparser());
+app.use(ErrorMiddleware());
+
 app
-  .use(new ReportsController().routes())
-  .use(new ReportsController().allowedMethods());
+  .use(new UserController().routes())
+  .use(new UserController().allowedMethods());
 
-app.listen(3000, () => {
-  console.log(`Auth server is running at ${3000}`);
+app
+  .use(new AuthController().routes())
+  .use(new AuthController().allowedMethods());
+
+app
+  .use(new AdAccountsController().routes())
+  .use(new AdAccountsController().allowedMethods());
+
+app
+  .use(new OnboardingController().routes())
+  .use(new OnboardingController().allowedMethods());
+
+app
+  .use(new OrganizationController().routes())
+  .use(new OrganizationController().allowedMethods());
+
+app
+  .use(new ClientController().routes())
+  .use(new ClientController().allowedMethods());
+
+app.listen(3001, () => {
+  logger.info(`Auth server is running at ${3001}`);
 });
-
-await orm.getSchemaGenerator().refreshDatabase();
