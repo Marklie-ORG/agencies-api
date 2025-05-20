@@ -128,6 +128,12 @@ export class UserController extends Router {
       body.redirectUri,
     );
 
+    if (!data) {
+      ctx.body = { message: "Failed to retrieve access token." };
+      ctx.status = 400;
+      return;
+    }
+
     const accessToken = data.access_token;
 
     this.agencyService.saveAgencyToken(user, accessToken);

@@ -14,16 +14,24 @@ export class FacebookApi {
   
   public async handleFacebookLogin(code: string, redirectUri: string) {
 
-    const response = await this.api.get("/oauth/access_token", {
-        params: {
-            client_id: process.env.FACEBOOK_APP_ID,
+    let response;
+
+    try {
+      response = await this.api.get("/oauth/access_token", {
+          params: {
+              client_id: process.env.FACEBOOK_APP_ID,
             redirect_uri: redirectUri,
             client_secret: process.env.FACEBOOK_APP_SECRET,
             code: code
         }
-    });
+      });
+    } catch (error) {
+      console.error(error);
+    }
 
-    return response.data;
+    console.log(response);
+
+    return response?.data || null;
   }
 
   public async getBusinesses() {
