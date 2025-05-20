@@ -73,6 +73,7 @@ app
   .use(new ClientController().routes())
   .use(new ClientController().allowedMethods());
 
-app.listen(3001, () => {
-  logger.info(`Auth server is running at ${3001}`);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  logger.info(`Auth server is running at ${PORT}`);
 });
