@@ -20,7 +20,7 @@ import { ClientController } from "lib/controllers/ClientController.js";
 const app = new Koa();
 
 const logger: Log = Log.getInstance().extend("service");
-const database = await Database.getInstance();
+const database = await Database.getInstance(); 
 
 await database.orm.connect().then(() => {
   logger.info("Database has connected!");
