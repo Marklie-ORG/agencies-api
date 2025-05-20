@@ -11,9 +11,8 @@
     "docker:up": "docker compose -f ../docker/compose.yaml up -d",
     "generate:dts": "npx tsc --emitDeclarationOnly --outDir dist",
     "build:all": "npm run build && npm run generate:dts",
-    "start": "node --env-file .env --experimental-specifier-resolution=node dist/index.js",
-    "watch": "pnpm docker:up && npx nodemon --config ./nodemon.json",
-    "start:dev": "npm run watch"
+    "start": "node --experimental-specifier-resolution=node dist/index.js",
+    "watch": "pnpm docker:up && npx nodemon --config ./nodemon.json"
   },
   "dependencies": {
     "@koa/cors": "^5.0.0",
@@ -23,8 +22,9 @@
     "cronstrue": "^2.60.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "marklie-ts-core": "1.1.14",
-    "uuid": "^11.1.0"
+    "marklie-ts-core": "1.2.1",
+    "uuid": "^11.1.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.6.0",

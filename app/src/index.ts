@@ -1,5 +1,6 @@
 import Koa from "koa";
 import koabodyparser from "koa-bodyparser";
+import "dotenv/config";
 import cors from "@koa/cors";
 import { AuthController } from "./lib/controllers/AuthenticationController.js";
 import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
