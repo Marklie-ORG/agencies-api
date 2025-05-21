@@ -4,11 +4,12 @@ import {
   Database,
   OrganizationClient,
   SchedulingOption,
+  SlackApi,
 } from "marklie-ts-core";
 import cronstrue from "cronstrue";
-import { TokenService } from "./TokenService";
+import { TokenService } from "marklie-ts-core";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
-import type { SlackService } from "./SlackService.js";
+import type { SlackService } from "marklie-ts-core";
 import type { UpdateClientRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces";
 
 const database = await Database.getInstance();
@@ -87,6 +88,7 @@ export class ClientService {
       name: client.name,
       emails: client.emails,
       adAccountId: "",
+      slackConversationId: client.slackConversationId,
       crons:
         client.schedulingOption?.getItems().map((opt: SchedulingOption) => ({
           uuid: opt.uuid,
@@ -140,11 +142,35 @@ export class ClientService {
     );
   }
 
-  async getConnectedSlackWorkspaces(orgUuid: string) {
-    return await database.em.find(ClientToken, {
-      organization: orgUuid,
-      type: ClientTokenType.SLACK,
+  // async getConnectedSlackWorkspaces(orgUuid: string) {
+  //   return await database.em.find(ClientToken, {
+  //     organization: orgUuid,
+  //     type: ClientTokenType.SLACK,
+  //   });
+  // }
+
+  async getConnectedSlackWorkspaces(organizationUuid: string) {
+    const tokens = await database.em.find(ClientToken, { 
+      organization: { uuid: organizationUuid },
+      type: ClientTokenType.SLACK 
+    }, {
+      populate: ['organizationClient']
     });
+
+    const workspaces = await Promise.all(tokens.map(async (token: ClientToken) => {
+      const slackApi = new SlackApi(token.token);
+      const response = await slackApi.getTeamInfo();
+      return {
+        clientName: token.organizationClient.name,
+        clientId: token.organizationClient.uuid,
+        tokenId: token.uuid,
+        teamId: response.team.id,
+        name: response.team.name,
+        image: response.team.icon.image_34
+      };
+    }));
+
+    return workspaces;
   }
 
   async setSlackWorkspaceToken(clientUuid: string, token: string) {

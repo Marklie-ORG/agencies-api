@@ -9,8 +9,8 @@ import type {
   UpdateClientRequest,
 } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { ClientService } from "../services/ClientService.js";
-import { SlackService } from "../services/SlackService.js";
-import { TokenService } from "../services/TokenService.js";
+import { SlackService } from "marklie-ts-core";
+import { TokenService } from "marklie-ts-core";
 
 
 export class ClientController extends Router {
