@@ -15,11 +15,11 @@ import type {
 import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { AgencyService } from "lib/services/AgencyService.js";
-import { SlackApi } from "lib/apis/SlackApi.js";
+import { SlackApi } from "marklie-ts-core";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { ClientService } from "../services/ClientService.js";
-import { SlackService } from "../services/SlackService.js";
-import { TokenService } from "../services/TokenService.js";
+import { SlackService } from "marklie-ts-core";
+import { TokenService } from "marklie-ts-core";
 
 export class UserController extends Router {
   private readonly userService: UserService;
@@ -148,6 +148,12 @@ export class UserController extends Router {
     const slackApi = new SlackApi();
 
     const data = await slackApi.handleSlackLogin(body.code, body.redirectUri);
+
+    console.log(data);
+
+    // return
+
+    console.log(data.access_token);
 
     await this.clientService.createToken(
       body.organizationClientId,
