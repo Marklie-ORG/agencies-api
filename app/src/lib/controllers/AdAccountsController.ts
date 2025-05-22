@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import type { Context } from "koa";
 import { AdAccountsService } from "lib/services/AdAccountsService.js";
+import type { User } from "marklie-ts-core";
 
 export class AdAccountsController extends Router {
   private adAccountsService = new AdAccountsService();
@@ -16,8 +17,10 @@ export class AdAccountsController extends Router {
 
   private async getBusinessesHierarchy(ctx: Context) {
     try {
+      const user = ctx.state.user as User;
+      const organizationUuid = user.activeOrganization.uuid;
 
-      const businessesHierarchy = await this.adAccountsService.getAvailableAdAccounts();
+      const businessesHierarchy = await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
 
       ctx.body = businessesHierarchy;
       ctx.status = 200;

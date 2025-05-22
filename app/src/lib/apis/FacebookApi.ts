@@ -4,12 +4,12 @@ export class FacebookApi {
   private api: AxiosInstance;
   private accessToken: string;
 
-  constructor() {
+  constructor(accessToken?: string) {
     this.api = axios.create({
         baseURL: `https://graph.facebook.com/v22.0`,
         headers: { "Content-Type": "application/json" }
     });
-    this.accessToken = process.env.FACEBOOK_ACCESS_TOKEN || "";
+    this.accessToken = accessToken || "";
   }
   
   public async handleFacebookLogin(code: string, redirectUri: string) {
