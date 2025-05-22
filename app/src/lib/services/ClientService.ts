@@ -42,6 +42,10 @@ export class ClientService {
     if (client.emails !== undefined) {
       existingClient.emails = client.emails;
     }
+    
+    if (client.phoneNumbers !== undefined) {
+      existingClient.phoneNumbers = client.phoneNumbers;
+    }
 
     await database.em.persistAndFlush(existingClient);
     return existingClient;
@@ -87,6 +91,7 @@ export class ClientService {
       uuid: client.uuid,
       name: client.name,
       emails: client.emails,
+      phoneNumbers: client.phoneNumbers,
       adAccountId: "",
       slackConversationId: client.slackConversationId,
       crons:
