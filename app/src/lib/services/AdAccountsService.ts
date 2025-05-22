@@ -1,9 +1,17 @@
 import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { extractAccountHierarchy } from "lib/utils/FacebookDataUtil.js";
-
+import { OrganizationToken } from "marklie-ts-core";
+import { Database } from "marklie-ts-core";
 export class AdAccountsService {
-  async getAvailableAdAccounts(): Promise<any> {
-    const facebookApi = new FacebookApi();
+  async getAvailableAdAccounts(organizationUuid: string): Promise<any> {
+    
+    const database = await Database.getInstance();
+    const tokenRecord = await database.em.findOne(OrganizationToken, {
+      organization: organizationUuid,
+    });
+    
+    const facebookApi = new FacebookApi(tokenRecord.token);
+
     const [businessesResponse, adAccountsResponse] = await Promise.all([
       facebookApi.getBusinesses(),
       facebookApi.getAdAccounts(),
