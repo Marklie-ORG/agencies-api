@@ -12,7 +12,6 @@ import { ClientService } from "../services/ClientService.js";
 import { SlackService } from "marklie-ts-core";
 import { TokenService } from "marklie-ts-core";
 
-
 export class ClientController extends Router {
   private readonly clientsService: ClientService;
   constructor() {
@@ -27,6 +26,7 @@ export class ClientController extends Router {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
     this.get("/:clientUuid", this.getClient.bind(this));
+    this.get("/:clientUuid/logs", this.getClientLogs.bind(this));
     this.put("/:clientUuid", this.updateClient.bind(this));
 
     this.get(
@@ -62,7 +62,6 @@ export class ClientController extends Router {
       "/:clientUuid/slack/workspace-token",
       this.setSlackWorkspaceToken.bind(this),
     );
-
   }
 
   private async createClient(ctx: Context) {
@@ -92,6 +91,13 @@ export class ClientController extends Router {
 
     ctx.body = await this.clientsService.getClients(user.activeOrganization);
 
+    ctx.status = 200;
+  }
+
+  private async getClientLogs(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+
+    ctx.body = await this.clientsService.getClientLogs(clientUuid);
     ctx.status = 200;
   }
 
