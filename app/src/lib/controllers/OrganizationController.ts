@@ -32,10 +32,8 @@ export class OrganizationController extends Router {
   }
 
   private async getLogs(ctx: Context) {
-    console.log(ctx.params);
     const orgUuid = ctx.params.uuid;
 
-    console.log(await this.organizationService.getLogs(orgUuid));
     ctx.body = await this.organizationService.getLogs(orgUuid);
     ctx.status = 200;
   }
