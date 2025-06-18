@@ -10,7 +10,7 @@ import type {
   ChangeEmailRequest,
   ChangePasswordRequest,
   SendPasswordRecoveryEmailRequest,
-  VerifyPasswordRecoveryRequest
+  VerifyPasswordRecoveryRequest,
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
@@ -44,8 +44,14 @@ export class UserController extends Router {
     this.post("/send-change-email-email", this.sendChangeEmailEmail.bind(this));
     this.post("/verify-email-change", this.verifyEmailChange.bind(this));
     this.post("/change-password", this.changePassword.bind(this));
-    this.post("/send-password-recovery-email", this.sendPasswordRecoveryEmail.bind(this));
-    this.post("/verify-password-recovery", this.verifyPasswordRecovery.bind(this));
+    this.post(
+      "/send-password-recovery-email",
+      this.sendPasswordRecoveryEmail.bind(this),
+    );
+    this.post(
+      "/verify-password-recovery",
+      this.verifyPasswordRecovery.bind(this),
+    );
     this.get("/me", this.me.bind(this));
   }
 
@@ -65,12 +71,15 @@ export class UserController extends Router {
     ctx.status = 200;
   }
 
-  
   private async sendChangeEmailEmail(ctx: Context) {
     const body = ctx.request.body as ChangeEmailRequest;
     const user: User = ctx.state.user as User;
 
-    await this.userService.sendChangeEmailEmail(body.email, body.password, user);
+    await this.userService.sendChangeEmailEmail(
+      body.email,
+      body.password,
+      user,
+    );
 
     ctx.body = { message: "Email sent successfully." };
     ctx.status = 200;
@@ -135,7 +144,8 @@ export class UserController extends Router {
     }
 
     // const accessToken = data.access_token;
-    const accessToken = "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa"
+    const accessToken =
+      "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa";
 
     this.agencyService.saveAgencyToken(user, accessToken);
 
@@ -149,12 +159,6 @@ export class UserController extends Router {
     const slackApi = new SlackApi();
 
     const data = await slackApi.handleSlackLogin(body.code, body.redirectUri);
-
-    console.log(data);
-
-    // return
-
-    console.log(data.access_token);
 
     await this.clientService.createToken(
       body.organizationClientId,
@@ -170,7 +174,11 @@ export class UserController extends Router {
     const body = ctx.request.body as ChangePasswordRequest;
     const user: User = ctx.state.user as User;
 
-    await this.userService.changePassword(body.password, body.newPassword, user);
+    await this.userService.changePassword(
+      body.password,
+      body.newPassword,
+      user,
+    );
 
     ctx.body = { message: "Password changed successfully." };
     ctx.status = 200;

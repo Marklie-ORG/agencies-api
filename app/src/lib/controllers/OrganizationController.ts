@@ -1,6 +1,9 @@
 import Router from "koa-router";
 import type { Context } from "koa";
-import type { CreateOrganizationRequest, UseInviteCodeRequest } from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
+import type {
+  CreateOrganizationRequest,
+  UseInviteCodeRequest,
+} from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
 import { OrganizationService } from "../services/OrganizationService.js";
 
 export class OrganizationController extends Router {
@@ -9,11 +12,12 @@ export class OrganizationController extends Router {
     super({ prefix: "/api/organizations" });
     this.organizationService = new OrganizationService();
     this.setUpRoutes();
-  } 
+  }
 
   private setUpRoutes() {
     this.post("/", this.createOrganization.bind(this));
     this.get("/invite-code", this.generateInviteCode.bind(this));
+    this.get("/:uuid/logs", this.getLogs.bind(this));
     this.post("/invite-code", this.useInviteCode.bind(this));
   }
 
@@ -24,6 +28,13 @@ export class OrganizationController extends Router {
     await this.organizationService.createOrganization(body.name, user);
 
     ctx.body = { message: "Organization created successfully." };
+    ctx.status = 200;
+  }
+
+  private async getLogs(ctx: Context) {
+    const orgUuid = ctx.params.uuid;
+
+    ctx.body = await this.organizationService.getLogs(orgUuid);
     ctx.status = 200;
   }
 
@@ -45,5 +56,4 @@ export class OrganizationController extends Router {
     ctx.body = { message: "Invite code used successfully." };
     ctx.status = 200;
   }
-
 }

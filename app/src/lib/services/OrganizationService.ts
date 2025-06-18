@@ -1,4 +1,5 @@
 import {
+  ActivityLog,
   Organization,
   OrganizationInvite,
   OrganizationMember,
@@ -7,7 +8,6 @@ import {
 import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { AuthenticationUtil, Database } from "marklie-ts-core";
 import { UserService } from "./UserService.js";
-
 
 const database = await Database.getInstance();
 
@@ -48,6 +48,19 @@ export class OrganizationService {
     return code;
   }
 
+  async getLogs(orgUuid: string) {
+    return await database.em.find(
+      ActivityLog,
+      {
+        organization: orgUuid,
+      },
+      {
+        populate: ["client"],
+        orderBy: { createdAt: "DESC" },
+      },
+    );
+  }
+
   async useInviteCode(code: string, user: User): Promise<void> {
     const invite = await database.em.findOne(OrganizationInvite, { code });
     if (!invite || invite.expiresAt < new Date() || invite.usedAt)
@@ -64,7 +77,6 @@ export class OrganizationService {
     invite.usedBy = user.uuid;
 
     await database.em.persistAndFlush([member, user, invite]);
-
   }
 
   private generateRandomCode(length: number): string {

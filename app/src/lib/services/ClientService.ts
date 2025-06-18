@@ -1,4 +1,5 @@
 import {
+  ActivityLog,
   ClientFacebookAdAccount,
   ClientToken,
   Database,
@@ -30,7 +31,9 @@ export class ClientService {
   }
 
   async updateClient(clientUuid: string, client: UpdateClientRequest) {
-    const existingClient = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    const existingClient = await database.em.findOne(OrganizationClient, {
+      uuid: clientUuid,
+    });
     if (!existingClient) {
       throw new Error("Client not found");
     }
@@ -42,7 +45,7 @@ export class ClientService {
     if (client.emails !== undefined) {
       existingClient.emails = client.emails;
     }
-    
+
     if (client.phoneNumbers !== undefined) {
       existingClient.phoneNumbers = client.phoneNumbers;
     }
@@ -55,6 +58,19 @@ export class ClientService {
     return await database.em.find(OrganizationClient, {
       organization: orgUuid,
     });
+  }
+
+  async getClientLogs(clientUuid: string) {
+    return await database.em.find(
+      ActivityLog,
+      {
+        client: clientUuid,
+      },
+      {
+        populate: ["client"],
+        orderBy: { createdAt: "DESC" },
+      },
+    );
   }
 
   async createClientFacebookAdAccount(clientUuid: string, adAccountId: string) {
@@ -155,25 +171,31 @@ export class ClientService {
   // }
 
   async getConnectedSlackWorkspaces(organizationUuid: string) {
-    const tokens = await database.em.find(ClientToken, { 
-      organization: { uuid: organizationUuid },
-      type: ClientTokenType.SLACK 
-    }, {
-      populate: ['organizationClient']
-    });
+    const tokens = await database.em.find(
+      ClientToken,
+      {
+        organization: { uuid: organizationUuid },
+        type: ClientTokenType.SLACK,
+      },
+      {
+        populate: ["organizationClient"],
+      },
+    );
 
-    const workspaces = await Promise.all(tokens.map(async (token: ClientToken) => {
-      const slackApi = new SlackApi(token.token);
-      const response = await slackApi.getTeamInfo();
-      return {
-        clientName: token.organizationClient.name,
-        clientId: token.organizationClient.uuid,
-        tokenId: token.uuid,
-        teamId: response.team.id,
-        name: response.team.name,
-        image: response.team.icon.image_34
-      };
-    }));
+    const workspaces = await Promise.all(
+      tokens.map(async (token: ClientToken) => {
+        const slackApi = new SlackApi(token.token);
+        const response = await slackApi.getTeamInfo();
+        return {
+          clientName: token.organizationClient.name,
+          clientId: token.organizationClient.uuid,
+          tokenId: token.uuid,
+          teamId: response.team.id,
+          name: response.team.name,
+          image: response.team.icon.image_34,
+        };
+      }),
+    );
 
     return workspaces;
   }
