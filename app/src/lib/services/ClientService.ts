@@ -112,12 +112,8 @@ export class ClientService {
       slackConversationId: client.slackConversationId,
       crons:
         client.schedulingOption?.getItems().map((opt: SchedulingOption) => ({
-          uuid: opt.uuid,
-          cronExpression: cronstrue.toString(opt.cronExpression),
-          isActive: opt.isActive,
-          nextRun: opt.nextRun,
-          dataPreset: opt.datePreset,
-          reviewNeeded: opt.reviewNeeded,
+          frequency: cronstrue.toString(opt.cronExpression),
+          ...opt,
         })) ?? [],
     };
   }

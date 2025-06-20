@@ -1,13 +1,17 @@
 import {
   ActivityLog,
+  AuthenticationUtil,
+  Database,
   Organization,
+  OrganizationClient,
   OrganizationInvite,
   OrganizationMember,
+  SchedulingOption,
   User,
 } from "marklie-ts-core";
 import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
-import { AuthenticationUtil, Database } from "marklie-ts-core";
 import { UserService } from "./UserService.js";
+import cronstrue from "cronstrue";
 
 const database = await Database.getInstance();
 
@@ -59,6 +63,24 @@ export class OrganizationService {
         orderBy: { createdAt: "DESC" },
       },
     );
+  }
+  async getSchedulingOptions(uuid: string) {
+    const clients = await database.em.find(OrganizationClient, {
+      organization: uuid,
+    });
+
+    const clientIds = clients.map((c: OrganizationClient) => c.uuid);
+
+    const schedules = await database.em.find(
+      SchedulingOption,
+      { client: { $in: clientIds } },
+      { populate: ["client"] },
+    );
+
+    return schedules.map((schedule: SchedulingOption) => ({
+      ...schedule,
+      frequency: cronstrue.toString(schedule.cronExpression),
+    }));
   }
 
   async useInviteCode(code: string, user: User): Promise<void> {
