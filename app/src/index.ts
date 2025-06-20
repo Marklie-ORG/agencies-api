@@ -8,7 +8,6 @@ import { UserController } from "./lib/controllers/UserController.js";
 import {
   AuthMiddleware,
   CookiesMiddleware,
-  Database,
   ErrorMiddleware,
   Log,
   ValidationMiddleware,
@@ -20,11 +19,6 @@ import { ClientController } from "lib/controllers/ClientController.js";
 const app = new Koa();
 
 const logger: Log = Log.getInstance().extend("service");
-const database = await Database.getInstance(); 
-
-await database.orm.connect().then(() => {
-  logger.info("Database has connected!");
-});
 
 app.use(
   cors({

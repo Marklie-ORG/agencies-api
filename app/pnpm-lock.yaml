@@ -33,8 +33,8 @@ importers:
         specifier: ^9.0.2
         version: 9.0.2
       marklie-ts-core:
-        specifier: 1.2.31
-        version: 1.2.31(@types/node@22.10.10)(pg@8.15.6)
+        specifier: 1.2.36
+        version: 1.2.36(@types/node@22.10.10)(pg@8.15.6)
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -1537,8 +1537,8 @@ packages:
     resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
     engines: {node: '>=10'}
 
-  marklie-ts-core@1.2.31:
-    resolution: {integrity: sha512-pZAjcm0C9BikFdG7iex6Or+sMvS67TWZT8yFpV+0zCa+qnWDxDRPVBP+yd42Pr5b94mlaMbMbGIQ0EtwLhS4SQ==}
+  marklie-ts-core@1.2.36:
+    resolution: {integrity: sha512-KfcHurqMG48VS62ohcC6FMiEn1pfERv7lWmhDhKSGP9KwlGUJ1pE6LehZ7p/FmcniupIMRPKq/bIi6B81c8caQ==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -3822,7 +3822,7 @@ snapshots:
     dependencies:
       semver: 7.5.4
 
-  marklie-ts-core@1.2.31(@types/node@22.10.10)(pg@8.15.6):
+  marklie-ts-core@1.2.36(@types/node@22.10.10)(pg@8.15.6):
     dependencies:
       '@google-cloud/pubsub': 4.11.0
       '@google-cloud/secret-manager': 6.0.1

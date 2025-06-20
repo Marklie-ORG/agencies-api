@@ -147,7 +147,7 @@ export class UserController extends Router {
     const accessToken =
       "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa";
 
-    this.agencyService.saveAgencyToken(user, accessToken);
+    await this.agencyService.saveAgencyToken(user, accessToken);
 
     ctx.body = { message: "Access token retrieved successfully." };
     ctx.status = 200;
