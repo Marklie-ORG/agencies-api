@@ -18,6 +18,8 @@ import { ClientController } from "lib/controllers/ClientController.js";
 
 const app = new Koa();
 
+app.proxy = true;
+
 const logger: Log = Log.getInstance().extend("service");
 
 app.use(
