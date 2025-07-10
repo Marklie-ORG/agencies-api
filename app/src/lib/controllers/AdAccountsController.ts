@@ -20,13 +20,12 @@ export class AdAccountsController extends Router {
       const user = ctx.state.user as User;
       const organizationUuid = user.activeOrganization.uuid;
 
-      const businessesHierarchy = await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
+      const businessesHierarchy =
+        await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
 
       ctx.body = businessesHierarchy;
       ctx.status = 200;
-
     } catch (error) {
-      console.error(error);
       ctx.body = {
         message: "Internal server error",
         error: error,
@@ -34,5 +33,4 @@ export class AdAccountsController extends Router {
       ctx.status = 500;
     }
   }
-
 }

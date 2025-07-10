@@ -9,7 +9,7 @@ export class OnboardingController extends Router {
     super({ prefix: "/api/onboarding" });
     this.onboardingService = new OnboardingService();
     this.setUpRoutes();
-  } 
+  }
 
   private setUpRoutes() {
     this.post("/answer", this.saveAnswer.bind(this));
@@ -19,8 +19,12 @@ export class OnboardingController extends Router {
   private async saveAnswer(ctx: Context) {
     const body = ctx.request.body as SaveAnswerRequest;
     const user = ctx.state.user;
-  
-    await this.onboardingService.createOnboardingQuestionAnswer(body.question, body.answer, user);
+
+    await this.onboardingService.createOnboardingQuestionAnswer(
+      body.question,
+      body.answer,
+      user,
+    );
 
     ctx.body = { message: "Answer saved successfully." };
     ctx.status = 200;
@@ -28,13 +32,11 @@ export class OnboardingController extends Router {
 
   private async getOnboardingSteps(ctx: Context) {
     const user = ctx.state.user;
-    
-    const onboardingSteps = await this.onboardingService.getOnboardingSteps(user);
+
+    const onboardingSteps =
+      await this.onboardingService.getOnboardingSteps(user);
 
     ctx.body = onboardingSteps;
     ctx.status = 200;
   }
-
 }
-
-
