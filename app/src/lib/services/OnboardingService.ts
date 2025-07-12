@@ -30,6 +30,10 @@ export class OnboardingService {
       user,
     });
 
+    if (!user.activeOrganization) {
+      throw new Error("User does not have an active organization set");
+    }
+
     organizationToken = await database.em.findOne(OrganizationToken, {
       organization: user.activeOrganization,
     });

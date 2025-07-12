@@ -9,8 +9,7 @@ import type {
   UpdateClientRequest,
 } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { ClientService } from "../services/ClientService.js";
-import { SlackService } from "marklie-ts-core";
-import { TokenService } from "marklie-ts-core";
+import { SlackService, TokenService } from "marklie-ts-core";
 
 export class ClientController extends Router {
   private readonly clientsService: ClientService;
@@ -111,9 +110,7 @@ export class ClientController extends Router {
     const clientUuid = ctx.params.clientUuid;
     const body = ctx.request.body as UpdateClientRequest;
 
-    const client = await this.clientsService.updateClient(clientUuid, body);
-
-    ctx.body = client;
+    ctx.body = await this.clientsService.updateClient(clientUuid, body);
     ctx.status = 200;
   }
 

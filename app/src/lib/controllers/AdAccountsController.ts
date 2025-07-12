@@ -18,12 +18,10 @@ export class AdAccountsController extends Router {
   private async getBusinessesHierarchy(ctx: Context) {
     try {
       const user = ctx.state.user as User;
-      const organizationUuid = user.activeOrganization.uuid;
+      const organizationUuid = user.activeOrganization?.uuid;
 
-      const businessesHierarchy =
+      ctx.body =
         await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
-
-      ctx.body = businessesHierarchy;
       ctx.status = 200;
     } catch (error) {
       ctx.body = {

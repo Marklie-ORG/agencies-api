@@ -25,23 +25,6 @@ export async function extractAccountHierarchy(
             : null,
         }))
         .sort((a, b) => a.name.localeCompare(b.name)),
-
-      // owned_ad_accounts: account.owned_ad_accounts
-      //   ? account.owned_ad_accounts.data
-      //       .map((owned) => ({
-      //         id: owned.id,
-      //         name: owned.name,
-      //       }))
-      //       .sort((a, b) => a.name.localeCompare(b.name))
-      //   : [],
-      // client_ad_accounts: account.client_ad_accounts
-      //   ? account.client_ad_accounts.data
-      //       .map((client) => ({
-      //         id: client.id,
-      //         name: client.name,
-      //       }))
-      //       .sort((a, b) => a.name.localeCompare(b.name))
-      //   : [],
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }

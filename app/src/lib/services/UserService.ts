@@ -67,9 +67,10 @@ export class UserService {
     if (user.email === newEmail) {
       throw new Error("New email cannot be the same as the current email");
     }
+    const cleanedUser = await AuthenticationUtil.convertPersistedToUser(user);
 
     const emailChangeToken = AuthenticationUtil.signEmailChangeToken(
-      user,
+      cleanedUser,
       newEmail,
     );
 
@@ -90,8 +91,13 @@ export class UserService {
   }
 
   async verifyEmailChange(token: string): Promise<void> {
-    const { userUuid, isExpired, newEmail } =
-      await AuthenticationUtil.verifyEmailChangeToken(token);
+    const tokenData = await AuthenticationUtil.verifyEmailChangeToken(token);
+
+    if (!tokenData) {
+      throw new Error("Invalid or expired email change token");
+    }
+
+    const { userUuid, isExpired, newEmail } = tokenData;
 
     if (isExpired) {
       throw new Error("Token expired");
@@ -117,12 +123,15 @@ export class UserService {
       throw new Error("User not found");
     }
 
+    const cleanedUser = await AuthenticationUtil.convertPersistedToUser(user);
+
     const passwordRecoveryToken =
-      AuthenticationUtil.signPasswordRecoveryToken(user);
+      AuthenticationUtil.signPasswordRecoveryToken(cleanedUser);
 
     const token = database.em.create(PasswordRecoveryToken, {
       token: passwordRecoveryToken,
       user: user,
+      isUsed: false,
     });
     await database.em.persistAndFlush(token);
 
@@ -140,8 +149,15 @@ export class UserService {
     token: string,
     newPassword: string,
   ): Promise<void> {
-    const { userUuid, isExpired, toRecoverPassword, passwordRecoveryToken } =
+    const tokenData =
       await AuthenticationUtil.verifyPasswordRecoveryToken(token);
+
+    if (!tokenData) {
+      throw new Error("Invalid or expired password recovery token");
+    }
+
+    const { userUuid, isExpired, toRecoverPassword, passwordRecoveryToken } =
+      tokenData;
 
     if (isExpired) {
       throw new Error("Token expired");
@@ -159,6 +175,11 @@ export class UserService {
     const existingToken = await database.em.findOne(PasswordRecoveryToken, {
       token: passwordRecoveryToken,
     });
+
+    if (!existingToken) {
+      throw new Error("Token does not exist");
+    }
+
     if (existingToken.isUsed) {
       throw new Error("Token already used");
     }

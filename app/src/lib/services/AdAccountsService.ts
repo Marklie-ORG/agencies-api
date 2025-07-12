@@ -3,11 +3,23 @@ import { extractAccountHierarchy } from "lib/utils/FacebookDataUtil.js";
 import { OrganizationToken } from "marklie-ts-core";
 import { Database } from "marklie-ts-core";
 export class AdAccountsService {
-  async getAvailableAdAccounts(organizationUuid: string): Promise<any> {
+  async getAvailableAdAccounts(
+    organizationUuid: string | undefined,
+  ): Promise<any> {
+    if (!organizationUuid) {
+      throw new Error("No organization Uuid");
+    }
+
     const database = await Database.getInstance();
     const tokenRecord = await database.em.findOne(OrganizationToken, {
       organization: organizationUuid,
     });
+
+    if (!tokenRecord) {
+      throw new Error(
+        `No tokenRecord found for organization ${organizationUuid}`,
+      );
+    }
 
     const facebookApi = new FacebookApi(tokenRecord.token);
 
