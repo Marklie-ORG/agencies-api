@@ -1,10 +1,15 @@
-import { AuthenticationUtil, Database, Organization, PubSubWrapper, User } from "marklie-ts-core";
+import {
+  AuthenticationUtil,
+  Database,
+  Organization,
+  PubSubWrapper,
+  User,
+} from "marklie-ts-core";
 import { ChangeEmailToken } from "marklie-ts-core/dist/lib/entities/ChangeEmailToken.js";
 import { PasswordRecoveryToken } from "marklie-ts-core/dist/lib/entities/PasswordRecoveryToken.js";
 const database = await Database.getInstance();
 
 export class UserService {
-
   async setActiveOrganization(
     activeOrganizationUuid: string,
     user: User,
@@ -26,13 +31,11 @@ export class UserService {
     await database.em.persistAndFlush(user);
   }
 
-
   async changePassword(
     password: string,
     newPassword: string,
     user: User,
   ): Promise<void> {
-
     const { accessToken, refreshToken } = await AuthenticationUtil.login({
       email: user.email,
       password: password,
@@ -52,7 +55,6 @@ export class UserService {
     password: string,
     user: User,
   ): Promise<void> {
-
     const { accessToken, refreshToken } = await AuthenticationUtil.login({
       email: user.email,
       password: password,
@@ -65,15 +67,19 @@ export class UserService {
     if (user.email === newEmail) {
       throw new Error("New email cannot be the same as the current email");
     }
-    
-    const emailChangeToken = AuthenticationUtil.signEmailChangeToken(user, newEmail);
-    
+    const cleanedUser = await AuthenticationUtil.convertPersistedToUser(user);
+
+    const emailChangeToken = AuthenticationUtil.signEmailChangeToken(
+      cleanedUser,
+      newEmail,
+    );
+
     const token = database.em.create(ChangeEmailToken, {
       token: emailChangeToken,
       user: user,
     });
     await database.em.persistAndFlush(token);
-    
+
     const payload = {
       email: newEmail,
       token: token,
@@ -82,12 +88,16 @@ export class UserService {
     const topic = "notification-send-change-email-sub";
 
     await PubSubWrapper.publishMessage(topic, payload);
-
   }
 
   async verifyEmailChange(token: string): Promise<void> {
+    const tokenData = await AuthenticationUtil.verifyEmailChangeToken(token);
 
-    const { userUuid, isExpired, newEmail } = await AuthenticationUtil.verifyEmailChangeToken(token);
+    if (!tokenData) {
+      throw new Error("Invalid or expired email change token");
+    }
+
+    const { userUuid, isExpired, newEmail } = tokenData;
 
     if (isExpired) {
       throw new Error("Token expired");
@@ -100,13 +110,9 @@ export class UserService {
 
     user.email = newEmail;
     await database.em.persistAndFlush(user);
-
   }
 
-  async sendPasswordRecoveryEmail(
-    email: string,
-  ): Promise<void> {
-
+  async sendPasswordRecoveryEmail(email: string): Promise<void> {
     if (!email) {
       throw new Error("Email cannot be empty");
     }
@@ -116,29 +122,42 @@ export class UserService {
     if (!user) {
       throw new Error("User not found");
     }
-    
-    const passwordRecoveryToken = AuthenticationUtil.signPasswordRecoveryToken(user);
-    
+
+    const cleanedUser = await AuthenticationUtil.convertPersistedToUser(user);
+
+    const passwordRecoveryToken =
+      AuthenticationUtil.signPasswordRecoveryToken(cleanedUser);
+
     const token = database.em.create(PasswordRecoveryToken, {
       token: passwordRecoveryToken,
       user: user,
+      isUsed: false,
     });
     await database.em.persistAndFlush(token);
-    
+
     const payload = {
       token: passwordRecoveryToken,
-      email: email
+      email: email,
     };
 
     const topic = "notification-send-password-recovery-email";
 
     await PubSubWrapper.publishMessage(topic, payload);
-
   }
 
-  async verifyPasswordRecovery(token: string, newPassword: string): Promise<void> {
+  async verifyPasswordRecovery(
+    token: string,
+    newPassword: string,
+  ): Promise<void> {
+    const tokenData =
+      await AuthenticationUtil.verifyPasswordRecoveryToken(token);
 
-    const { userUuid, isExpired, toRecoverPassword, passwordRecoveryToken } = await AuthenticationUtil.verifyPasswordRecoveryToken(token);
+    if (!tokenData) {
+      throw new Error("Invalid or expired password recovery token");
+    }
+
+    const { userUuid, isExpired, toRecoverPassword, passwordRecoveryToken } =
+      tokenData;
 
     if (isExpired) {
       throw new Error("Token expired");
@@ -153,7 +172,14 @@ export class UserService {
       throw new Error("User not found");
     }
 
-    const existingToken = await database.em.findOne(PasswordRecoveryToken, { token: passwordRecoveryToken });
+    const existingToken = await database.em.findOne(PasswordRecoveryToken, {
+      token: passwordRecoveryToken,
+    });
+
+    if (!existingToken) {
+      throw new Error("Token does not exist");
+    }
+
     if (existingToken.isUsed) {
       throw new Error("Token already used");
     }
@@ -165,7 +191,5 @@ export class UserService {
     existingToken.isUsed = true;
 
     await database.em.persistAndFlush(existingToken);
-
   }
-
 }

@@ -42,6 +42,11 @@ export class OrganizationService {
       throw new Error("Only owners can invite");
 
     const code = this.generateRandomCode(4);
+
+    if (!user.activeOrganization) {
+      throw new Error("User does not have an active organization set");
+    }
+
     const invite = database.em.create(OrganizationInvite, {
       organization: user.activeOrganization,
       code,
@@ -52,7 +57,7 @@ export class OrganizationService {
     return code;
   }
 
-  async getLogs(orgUuid: string) {
+  async getLogs(orgUuid: string): Promise<ActivityLog[]> {
     return await database.em.find(
       ActivityLog,
       {
@@ -64,7 +69,9 @@ export class OrganizationService {
       },
     );
   }
-  async getSchedulingOptions(uuid: string) {
+  async getSchedulingOptions(
+    uuid: string,
+  ): Promise<(SchedulingOption & { frequency: string })[]> {
     const clients = await database.em.find(OrganizationClient, {
       organization: uuid,
     });
