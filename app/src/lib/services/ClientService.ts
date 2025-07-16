@@ -4,10 +4,8 @@ import {
   ClientToken,
   Database,
   OrganizationClient,
-  SchedulingOption,
   SlackApi,
 } from "marklie-ts-core";
-import cronstrue from "cronstrue";
 import { TokenService } from "marklie-ts-core";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 import type { SlackService } from "marklie-ts-core";
@@ -159,8 +157,8 @@ export class ClientService {
     name: string;
     adAccountId: string;
     emails: string[];
+    slack: string;
     phoneNumbers: string[];
-    crons: Array<Partial<SchedulingOption> & { frequency: string }>;
   }> {
     const client = await database.em.findOne(
       OrganizationClient,
@@ -186,17 +184,17 @@ export class ClientService {
       .filter((ch) => ch.constructor.name === "WhatsAppChannel")
       .map((ch: any) => ch.phoneNumber);
 
+    const slack = communicationChannels
+      .filter((ch) => ch.constructor.name === "SlackChannel")
+      .map((ch: any) => ch.conversationId);
+
     return {
       uuid: client.uuid,
       name: client.name,
-      adAccountId: "", // You can derive this if needed from `client.adAccounts`
+      adAccountId: "",
       emails,
       phoneNumbers,
-      crons:
-        client.schedulingOption?.getItems().map((opt: SchedulingOption) => ({
-          frequency: cronstrue.toString(opt.cronExpression),
-          ...opt,
-        })) ?? [],
+      slack: slack[0],
     };
   }
 
@@ -227,20 +225,6 @@ export class ClientService {
     return await database.em.find(ClientFacebookAdAccount, {
       client: clientUuid,
     });
-  }
-
-  async sendSlackMessageWithFile(
-    clientId: string,
-    message: string,
-    pdfBuffer: Buffer,
-    fileName: string,
-  ): Promise<any> {
-    return this.slackService.sendSlackMessageWithFile(
-      clientId,
-      message,
-      pdfBuffer,
-      fileName,
-    );
   }
 
   async getConnectedSlackWorkspaces(organizationUuid: string): Promise<
