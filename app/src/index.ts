@@ -15,6 +15,7 @@ import {
 import { OnboardingController } from "lib/controllers/OnboardingController.js";
 import { OrganizationController } from "lib/controllers/OrganizationController.js";
 import { ClientController } from "lib/controllers/ClientController.js";
+import { ImagesController } from "lib/controllers/ImagesController.js";
 
 const app = new Koa();
 
@@ -68,6 +69,10 @@ app
 app
   .use(new ClientController().routes())
   .use(new ClientController().allowedMethods());
+
+app
+  .use(new ImagesController().routes())
+  .use(new ImagesController().allowedMethods());
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
