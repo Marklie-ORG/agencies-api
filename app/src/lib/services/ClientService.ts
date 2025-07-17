@@ -1,3 +1,4 @@
+import type { SlackService } from "marklie-ts-core";
 import {
   ActivityLog,
   ClientFacebookAdAccount,
@@ -5,10 +6,9 @@ import {
   Database,
   OrganizationClient,
   SlackApi,
+  TokenService,
 } from "marklie-ts-core";
-import { TokenService } from "marklie-ts-core";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
-import type { SlackService } from "marklie-ts-core";
 import type { UpdateClientRequest } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces";
 import {
   CommunicationChannel,
@@ -248,7 +248,7 @@ export class ClientService {
       },
     );
 
-    const workspaces = await Promise.all(
+    return await Promise.all(
       tokens.map(async (token: ClientToken) => {
         const slackApi = new SlackApi(token.token);
         const response = await slackApi.getTeamInfo();
@@ -262,8 +262,6 @@ export class ClientService {
         };
       }),
     );
-
-    return workspaces;
   }
 
   async setSlackWorkspaceToken(

@@ -16,21 +16,19 @@ import { OnboardingController } from "lib/controllers/OnboardingController.js";
 import { OrganizationController } from "lib/controllers/OrganizationController.js";
 import { ClientController } from "lib/controllers/ClientController.js";
 import { ImagesController } from "lib/controllers/ImagesController.js";
+import { AgencyServiceConfig } from "./lib/config/config.js";
 
 const app = new Koa();
 
 app.proxy = true;
 
 const logger: Log = Log.getInstance().extend("service");
+const config = AgencyServiceConfig.getInstance();
 
 app.use(
   cors({
     origin: (ctx) => {
-      const allowedOrigins = [
-        "http://localhost:4200",
-        "https://marklie.com",
-        "https://ae08-77-174-130-35.ngrok-free.app",
-      ];
+      const allowedOrigins = config.get("ALLOWED_ORIGINS");
       const requestOrigin = ctx.request.header.origin;
       if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
         return requestOrigin;
@@ -40,6 +38,7 @@ app.use(
     credentials: true,
   }),
 );
+
 app.use(koabodyparser());
 app.use(CookiesMiddleware);
 app.use(AuthMiddleware());
