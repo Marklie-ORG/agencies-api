@@ -41,7 +41,15 @@ app.use(
 
 app.use(koabodyparser());
 app.use(CookiesMiddleware);
-app.use(AuthMiddleware());
+app.use(
+  AuthMiddleware([
+    "/api/auth/login",
+    "/api/auth/register",
+    "/api/auth/refresh",
+    "/api/user/send-password-recovery-email",
+    "/api/user/verify-password-recovery",
+  ]),
+);
 app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
 
