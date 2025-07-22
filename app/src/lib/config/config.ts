@@ -1,9 +1,9 @@
 import { authEnvSchema, ConfigService } from "marklie-ts-core";
 import { z } from "zod";
 
-export type AgencyServerEnvironment = z.infer<typeof authEnvSchema>;
+export type AgencyServiceEnvironment = z.infer<typeof authEnvSchema>;
 
-export class AgencyServiceConfig extends ConfigService<AgencyServerEnvironment> {
+export class AgencyServiceConfig extends ConfigService<AgencyServiceEnvironment> {
   private static instance: AgencyServiceConfig;
 
   private constructor() {
