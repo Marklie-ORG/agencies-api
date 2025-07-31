@@ -6,6 +6,7 @@ import { AuthController } from "./lib/controllers/AuthenticationController.js";
 import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
 import { UserController } from "./lib/controllers/UserController.js";
 import {
+  ActivityLogMiddleware,
   AuthMiddleware,
   CookiesMiddleware,
   ErrorMiddleware,
@@ -52,6 +53,7 @@ app.use(
 );
 app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
+app.use(ActivityLogMiddleware());
 
 app
   .use(new UserController().routes())
