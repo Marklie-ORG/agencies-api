@@ -81,7 +81,7 @@ export class ClientController extends Router {
       }
     }
 
-    ctx.body = { message: "Client created successfully." };
+    ctx.body = { clientUuid: client.uuid };
     ctx.status = 200;
   }
 
