@@ -16,19 +16,11 @@ export class AdAccountsController extends Router {
   }
 
   private async getBusinessesHierarchy(ctx: Context) {
-    try {
-      const user = ctx.state.user as User;
-      const organizationUuid = user.activeOrganization?.uuid;
+    const user = ctx.state.user as User;
+    const organizationUuid = user.activeOrganization?.uuid;
 
-      ctx.body =
-        await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
-      ctx.status = 200;
-    } catch (error) {
-      ctx.body = {
-        message: "Internal server error",
-        error: error,
-      };
-      ctx.status = 500;
-    }
+    ctx.body =
+      await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
+    ctx.status = 200;
   }
 }

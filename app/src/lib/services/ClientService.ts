@@ -1,7 +1,6 @@
-import type { SlackService } from "marklie-ts-core";
+import { ClientAdAccount, type SlackService } from "marklie-ts-core";
 import {
   ActivityLog,
-  ClientFacebookAdAccount,
   ClientToken,
   Database,
   OrganizationClient,
@@ -133,9 +132,11 @@ export class ClientService {
     clientUuid: string,
     adAccountId: string,
   ): Promise<void> {
-    const newAcc = database.em.create(ClientFacebookAdAccount, {
+    const newAcc = database.em.create(ClientAdAccount, {
       client: clientUuid,
       adAccountId,
+      provider: "facebook",
+      adAccountName: "",
     });
     await database.em.persistAndFlush(newAcc);
   }
@@ -144,7 +145,7 @@ export class ClientService {
     clientUuid: string,
     adAccountId: string,
   ): Promise<void> {
-    const acc = await database.em.findOne(ClientFacebookAdAccount, {
+    const acc = await database.em.findOne(ClientAdAccount, {
       client: clientUuid,
       adAccountId,
     });
@@ -204,13 +205,15 @@ export class ClientService {
     action: "add" | "delete",
   ): Promise<void> {
     if (action === "add") {
-      const newAcc = database.em.create(ClientFacebookAdAccount, {
+      const newAcc = database.em.create(ClientAdAccount, {
         client: clientUuid,
         adAccountId,
+        provider: "",
+        adAccountName: "",
       });
       await database.em.persistAndFlush(newAcc);
     } else {
-      const acc = await database.em.findOne(ClientFacebookAdAccount, {
+      const acc = await database.em.findOne(ClientAdAccount, {
         client: clientUuid,
         adAccountId,
       });
@@ -221,8 +224,8 @@ export class ClientService {
 
   async getClientFacebookAdAccounts(
     clientUuid: string,
-  ): Promise<ClientFacebookAdAccount[]> {
-    return await database.em.find(ClientFacebookAdAccount, {
+  ): Promise<ClientAdAccount[]> {
+    return await database.em.find(ClientAdAccount, {
       client: clientUuid,
     });
   }
