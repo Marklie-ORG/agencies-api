@@ -11,6 +11,7 @@ import type {
   ChangePasswordRequest,
   SendPasswordRecoveryEmailRequest,
   VerifyPasswordRecoveryRequest,
+  SendFeedbackRequest,
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import { User } from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
@@ -52,6 +53,7 @@ export class UserController extends Router {
       "/verify-password-recovery",
       this.verifyPasswordRecovery.bind(this),
     );
+    this.post("/feedback", this.sendFeedback.bind(this));
     this.get("/me", this.me.bind(this));
   }
 
@@ -59,6 +61,14 @@ export class UserController extends Router {
     const user: User = ctx.state.user as User;
 
     ctx.body = user;
+    ctx.status = 200;
+  }
+
+  private async sendFeedback(ctx: Context) {
+    const user: User = ctx.state.user as User;
+    const body = ctx.request.body as SendFeedbackRequest;
+    await this.userService.sendFeedback(body.message, user);
+    ctx.body = { message: "Feedback received. Thank you!" };
     ctx.status = 200;
   }
 
@@ -143,9 +153,9 @@ export class UserController extends Router {
       return;
     }
 
-    const accessToken = data.access_token;
-    // const accessToken =
-    //   "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa";
+    // const accessToken = data.access_token;
+    const accessToken =
+      "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa";
 
     await this.agencyService.saveAgencyToken(user, accessToken);
 

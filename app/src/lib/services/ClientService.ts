@@ -25,11 +25,11 @@ export class ClientService {
 
   async createClient(
     name: string,
-    orgUuid: string,
+    orgUuid: string
   ): Promise<OrganizationClient> {
     const client = database.em.create(OrganizationClient, {
       name,
-      organization: orgUuid,
+      organization: orgUuid
     });
     await database.em.persistAndFlush(client);
     return client;
@@ -131,12 +131,15 @@ export class ClientService {
   async createClientFacebookAdAccount(
     clientUuid: string,
     adAccountId: string,
+    adAccountName: string,
+    businessId: string,
   ): Promise<void> {
     const newAcc = database.em.create(ClientAdAccount, {
       client: clientUuid,
       adAccountId,
       provider: "facebook",
-      adAccountName: "",
+      adAccountName: adAccountName,
+      businessId: businessId,
     });
     await database.em.persistAndFlush(newAcc);
   }
@@ -156,7 +159,7 @@ export class ClientService {
   async getClient(uuid: string): Promise<{
     uuid: string;
     name: string;
-    adAccountId: string;
+    adAccounts: string[];
     emails: string[];
     slack: string;
     phoneNumbers: string[];
@@ -169,9 +172,13 @@ export class ClientService {
       },
     );
 
+    console.log(client)
+
     if (!client) {
       throw new Error("Client not found");
     }
+
+    const adAccounts = client.adAccounts!.map((adAccount) => adAccount.adAccountId);
 
     const communicationChannels = await database.em.find(CommunicationChannel, {
       client,
@@ -192,34 +199,11 @@ export class ClientService {
     return {
       uuid: client.uuid,
       name: client.name,
-      adAccountId: "",
+      adAccounts: adAccounts,
       emails,
       phoneNumbers,
       slack: slack[0],
     };
-  }
-
-  async manageAdAccount(
-    clientUuid: string,
-    adAccountId: string,
-    action: "add" | "delete",
-  ): Promise<void> {
-    if (action === "add") {
-      const newAcc = database.em.create(ClientAdAccount, {
-        client: clientUuid,
-        adAccountId,
-        provider: "",
-        adAccountName: "",
-      });
-      await database.em.persistAndFlush(newAcc);
-    } else {
-      const acc = await database.em.findOne(ClientAdAccount, {
-        client: clientUuid,
-        adAccountId,
-      });
-      if (!acc) throw new Error("Ad account not found");
-      await database.em.removeAndFlush(acc);
-    }
   }
 
   async getClientFacebookAdAccounts(

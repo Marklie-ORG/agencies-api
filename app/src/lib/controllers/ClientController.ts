@@ -2,7 +2,6 @@ import Router from "koa-router";
 import type { Context } from "koa";
 
 import type {
-  CreateClientFacebookAdAccountRequest,
   CreateClientRequest,
   SetSlackConversationIdRequest,
   SetSlackWorkspaceTokenRequest,
@@ -31,10 +30,6 @@ export class ClientController extends Router {
     this.get(
       "/:clientUuid/ad-accounts",
       this.getClientFacebookAdAccounts.bind(this),
-    );
-    this.post(
-      "/:clientUuid/ad-accounts",
-      this.createClientFacebookAdAccount.bind(this),
     );
     this.delete(
       "/:clientUuid/ad-accounts/:adAccountId",
@@ -69,14 +64,21 @@ export class ClientController extends Router {
 
     const client = await this.clientsService.createClient(
       body.name,
-      user.activeOrganization.uuid,
+      user.activeOrganization.uuid
     );
 
+    await this.clientsService.updateClient(client.uuid, {
+      emails: body.emails,
+      phoneNumbers: body.phoneNumbers,
+    });
+
     if (body.facebookAdAccounts.length > 0) {
-      for (const adAccountId of body.facebookAdAccounts) {
+      for (const adAccount of body.facebookAdAccounts) {
         await this.clientsService.createClientFacebookAdAccount(
           client.uuid,
-          adAccountId,
+          adAccount.adAccountId,
+          adAccount.adAccountName,
+          adAccount.businessId,
         );
       }
     }
@@ -119,19 +121,6 @@ export class ClientController extends Router {
 
     ctx.body =
       await this.clientsService.getClientFacebookAdAccounts(clientUuid);
-    ctx.status = 200;
-  }
-
-  private async createClientFacebookAdAccount(ctx: Context) {
-    const body = ctx.request.body as CreateClientFacebookAdAccountRequest;
-    const clientUuid = ctx.params.clientUuid;
-
-    await this.clientsService.createClientFacebookAdAccount(
-      clientUuid,
-      body.adAccountId,
-    );
-
-    ctx.body = { message: "Client Facebook Ad Account created successfully." };
     ctx.status = 200;
   }
 
