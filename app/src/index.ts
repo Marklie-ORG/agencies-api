@@ -18,6 +18,11 @@ import { OrganizationController } from "lib/controllers/OrganizationController.j
 import { ClientController } from "lib/controllers/ClientController.js";
 import { ImagesController } from "lib/controllers/ImagesController.js";
 import { AgencyServiceConfig } from "./lib/config/config.js";
+import { FeatureSuggestionsController } from "./lib/controllers/FeatureSuggestionsController.js";
+
+// import { Database } from "marklie-ts-core";
+// const database = await Database.getInstance();
+// await database.orm.getSchemaGenerator().updateSchema();
 
 const app = new Koa();
 
@@ -25,6 +30,8 @@ app.proxy = true;
 
 const logger: Log = Log.getInstance().extend("service");
 const config = AgencyServiceConfig.getInstance();
+
+
 
 app.use(
   cors({
@@ -82,6 +89,10 @@ app
 app
   .use(new ImagesController().routes())
   .use(new ImagesController().allowedMethods());
+
+app
+  .use(new FeatureSuggestionsController().routes())
+  .use(new FeatureSuggestionsController().allowedMethods());
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

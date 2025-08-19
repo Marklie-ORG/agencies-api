@@ -17,6 +17,7 @@ export class OrganizationController extends Router {
   private setUpRoutes() {
     this.post("/", this.createOrganization.bind(this));
     this.get("/invite-code", this.generateInviteCode.bind(this));
+    this.get("/invite-codes", this.listInviteCodes.bind(this));
     this.get("/:uuid/logs", this.getLogs.bind(this));
     this.post("/invite-code", this.useInviteCode.bind(this));
     this.get("/scheduling-options", this.getSchedulingOptions.bind(this));
@@ -45,6 +46,13 @@ export class OrganizationController extends Router {
     const inviteCode = await this.organizationService.generateInviteCode(user);
 
     ctx.body = { inviteCode };
+    ctx.status = 200;
+  }
+
+  private async listInviteCodes(ctx: Context) {
+    const user = ctx.state.user;
+    const invites = await this.organizationService.listInviteCodes(user);
+    ctx.body = invites;
     ctx.status = 200;
   }
 

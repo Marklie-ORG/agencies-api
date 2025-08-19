@@ -4,6 +4,7 @@ import {
   Organization,
   PubSubWrapper,
   User,
+  Feedback,
 } from "marklie-ts-core";
 import { ChangeEmailToken } from "marklie-ts-core/dist/lib/entities/ChangeEmailToken.js";
 import { PasswordRecoveryToken } from "marklie-ts-core/dist/lib/entities/PasswordRecoveryToken.js";
@@ -191,5 +192,17 @@ export class UserService {
     existingToken.isUsed = true;
 
     await database.em.persistAndFlush(existingToken);
+  }
+
+  async sendFeedback(message: string, user: User): Promise<void> {
+    if (!message || message.trim().length === 0) {
+      throw new Error("Feedback message cannot be empty");
+    }
+
+    const feedback = database.em.create(Feedback, {
+      message: message.trim(),
+      user,
+    });
+    await database.em.persistAndFlush(feedback);
   }
 }
