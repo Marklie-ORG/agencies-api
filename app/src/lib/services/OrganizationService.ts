@@ -57,6 +57,22 @@ export class OrganizationService {
     return code;
   }
 
+  async listInviteCodes(user: User): Promise<OrganizationInvite[]> {
+    const [roleEntry] = await AuthenticationUtil.getUserRoleInOrganization(user);
+    if (roleEntry.role !== OrganizationRole.OWNER)
+      throw new Error("Only owners can view invite codes");
+
+    if (!user.activeOrganization) {
+      throw new Error("User does not have an active organization set");
+    }
+
+    return await database.em.find(
+      OrganizationInvite,
+      { organization: user.activeOrganization },
+      { orderBy: { createdAt: "DESC" } },
+    );
+  }
+
   async getLogs(orgUuid: string): Promise<ActivityLog[]> {
     return await database.em.find(
       ActivityLog,
