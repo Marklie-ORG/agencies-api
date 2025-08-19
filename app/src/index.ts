@@ -20,9 +20,9 @@ import { ImagesController } from "lib/controllers/ImagesController.js";
 import { AgencyServiceConfig } from "./lib/config/config.js";
 import { FeatureSuggestionsController } from "./lib/controllers/FeatureSuggestionsController.js";
 
-import { Database } from "marklie-ts-core";
-const database = await Database.getInstance();
-await database.orm.getSchemaGenerator().updateSchema();
+// import { Database } from "marklie-ts-core";
+// const database = await Database.getInstance();
+// await database.orm.getSchemaGenerator().updateSchema();
 
 const app = new Koa();
 
