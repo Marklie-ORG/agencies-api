@@ -24,6 +24,7 @@ export class ClientController extends Router {
     this.post("/", this.createClient.bind(this));
     this.get("/", this.getClients.bind(this));
     this.get("/:clientUuid", this.getClient.bind(this));
+    this.delete("/:clientUuid", this.deleteClient.bind(this));
     this.get("/:clientUuid/logs", this.getClientLogs.bind(this));
     this.put("/:clientUuid", this.updateClient.bind(this));
 
@@ -105,6 +106,12 @@ export class ClientController extends Router {
   private async getClient(ctx: Context) {
     const clientUuid = ctx.params.clientUuid;
     ctx.body = await this.clientsService.getClient(clientUuid);
+    ctx.status = 200;
+  }
+
+  private async deleteClient(ctx: Context) {
+    const clientUuid = ctx.params.clientUuid;
+    ctx.body = await this.clientsService.deleteClient(clientUuid);
     ctx.status = 200;
   }
 

@@ -1,4 +1,9 @@
-import { ClientAdAccount, type SlackService } from "marklie-ts-core";
+import {
+  ClientAdAccount,
+  ScheduledJob,
+  SchedulingOption,
+  type SlackService,
+} from "marklie-ts-core";
 import {
   ActivityLog,
   ClientToken,
@@ -25,11 +30,11 @@ export class ClientService {
 
   async createClient(
     name: string,
-    orgUuid: string
+    orgUuid: string,
   ): Promise<OrganizationClient> {
     const client = database.em.create(OrganizationClient, {
       name,
-      organization: orgUuid
+      organization: orgUuid,
     });
     await database.em.persistAndFlush(client);
     return client;
@@ -156,6 +161,46 @@ export class ClientService {
     await database.em.removeAndFlush(acc);
   }
 
+  async deleteClient(clientUuid: string): Promise<void> {
+    const db = await Database.getInstance();
+
+    await db.em.transactional(async (em) => {
+      const client = await em.findOneOrFail(OrganizationClient, {
+        uuid: clientUuid,
+      });
+
+      const schedulingOptions = await em.find(SchedulingOption, {
+        client: clientUuid,
+      });
+      for (const option of schedulingOptions) {
+        const jobs = await em.find(ScheduledJob, {
+          schedulingOption: option.uuid,
+        });
+        jobs.forEach((job) => em.remove(job));
+        em.remove(option);
+      }
+
+      const adAccounts = await em.find(ClientAdAccount, { client: clientUuid });
+      adAccounts.forEach((account) => em.remove(account));
+
+      const channels = await em.find(CommunicationChannel, {
+        client: clientUuid,
+      });
+      channels.forEach((channel) => em.remove(channel));
+
+      // const logs = await em.find(ActivityLog, { client: clientUuid });
+      // logs.forEach((log) => em.remove(log));
+
+      const token = await em.findOne(ClientToken, {
+        organizationClient: clientUuid,
+      });
+      if (token) em.remove(token);
+
+      client.deletedAt = new Date();
+      await em.persistAndFlush(client);
+    });
+  }
+
   async getClient(uuid: string): Promise<{
     uuid: string;
     name: string;
@@ -176,7 +221,9 @@ export class ClientService {
       throw new Error("Client not found");
     }
 
-    const adAccounts = client.adAccounts!.map((adAccount) => adAccount.adAccountId);
+    const adAccounts = client.adAccounts!.map(
+      (adAccount) => adAccount.adAccountId,
+    );
 
     const communicationChannels = await database.em.find(CommunicationChannel, {
       client,

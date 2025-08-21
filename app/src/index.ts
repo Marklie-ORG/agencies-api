@@ -20,18 +20,12 @@ import { ImagesController } from "lib/controllers/ImagesController.js";
 import { AgencyServiceConfig } from "./lib/config/config.js";
 import { FeatureSuggestionsController } from "./lib/controllers/FeatureSuggestionsController.js";
 
-// import { Database } from "marklie-ts-core";
-// const database = await Database.getInstance();
-// await database.orm.getSchemaGenerator().updateSchema();
-
 const app = new Koa();
 
 app.proxy = true;
 
 const logger: Log = Log.getInstance().extend("service");
 const config = AgencyServiceConfig.getInstance();
-
-
 
 app.use(
   cors({
