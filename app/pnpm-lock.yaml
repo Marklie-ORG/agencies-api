@@ -18,13 +18,13 @@ specifiers:
   dotenv: ^16.5.0
   ioredis: ^5.4.2
   jsonwebtoken: ^9.0.2
-  koa: ^2.13.4
+  koa: 3.0.1
   koa-body: ^6.0.1
   koa-bodyparser: ^4.3.0
   koa-json: ^2.0.2
   koa-router: ^13.0.1
   luxon: ^3.6.1
-  marklie-ts-core: file:../../markly-ts-core/marklie-ts-core-1.4.29.tgz
+  marklie-ts-core: 1.4.47
   prettier: 3.4.2
   typescript: ^5.7.3
   uuid: ^11.1.0
@@ -39,7 +39,7 @@ dependencies:
   dotenv: 16.6.1
   ioredis: 5.6.1
   jsonwebtoken: 9.0.2
-  marklie-ts-core: file:../../markly-ts-core/marklie-ts-core-1.4.29.tgz_@types+node@22.16.4
+  marklie-ts-core: 1.4.47_@types+node@22.16.4
   uuid: 11.1.0
   zod: 4.0.5
 
@@ -53,7 +53,7 @@ devDependencies:
   '@types/koa__cors': 5.0.0
   '@types/luxon': 3.6.2
   '@types/node': 22.16.4
-  koa: 2.16.1
+  koa: 3.0.1
   koa-body: 6.0.1
   koa-bodyparser: 4.4.1
   koa-json: 2.0.2
@@ -1383,14 +1383,6 @@ packages:
     engines: {node: '>= 0.8'}
     dev: true
 
-  /cache-content-type/1.0.1:
-    resolution: {integrity: sha512-IKufZ1o4Ut42YUrZSo8+qnMTrFuKkvyoLXUywKz9GJ5BrhOFGhLdkx9sG4KAnVvbY6kEcSFjLQul+DVmBm2bgA==}
-    engines: {node: '>= 6.0.0'}
-    dependencies:
-      mime-types: 2.1.35
-      ylru: 1.4.0
-    dev: true
-
   /cacheable-lookup/7.0.0:
     resolution: {integrity: sha512-+qJyx4xiKra8mZrcwhjMRMUhD5NR1R8esPkzIYxX96JiecFoxAXFuz/GpR3+ev4PE1WamHip78wV0vcmPQtp8w==}
     engines: {node: '>=14.16'}
@@ -1447,11 +1439,6 @@ packages:
       qs: 6.14.0
       raw-body: 2.5.2
       type-is: 1.6.18
-    dev: true
-
-  /co/4.6.0:
-    resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
-    engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
     dev: true
 
   /code-block-writer/13.0.3:
@@ -1738,8 +1725,8 @@ packages:
     resolution: {integrity: sha512-AKrN98kuwOzMIdAizXGI86UFBoo26CL21UM763y1h/GMSJ4/OHU9k2YlsmBpyScFo/wbLzWQJBMCW4+IO3/+OQ==}
     dev: false
 
-  /encodeurl/1.0.2:
-    resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
+  /encodeurl/2.0.0:
+    resolution: {integrity: sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==}
     engines: {node: '>= 0.8'}
     dev: true
 
@@ -2270,6 +2257,7 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       has-symbols: 1.1.0
+    dev: false
 
   /hasown/2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
@@ -2446,16 +2434,6 @@ packages:
     engines: {node: '>=8'}
     dev: false
 
-  /is-generator-function/1.1.0:
-    resolution: {integrity: sha512-nPUB5km40q9e8UfN/Zc24eLlzdSf9OfKByBw9CIdw4H1giPMeA0OIJvbchsCu4npfI2QcMVBsGEBHKZ7wLTWmQ==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      call-bound: 1.0.4
-      get-proto: 1.0.1
-      has-tostringtag: 1.0.2
-      safe-regex-test: 1.1.0
-    dev: true
-
   /is-glob/4.0.3:
     resolution: {integrity: sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==}
     engines: {node: '>=0.10.0'}
@@ -2469,16 +2447,6 @@ packages:
   /is-plain-obj/1.1.0:
     resolution: {integrity: sha512-yvkRyxmFKEOQ4pNXCmJG5AEQNlXJS5LaONXo5/cLdTZdWvsZ1ioJEonLGAosKlMWE8lwUy/bJzMjcw8az73+Fg==}
     engines: {node: '>=0.10.0'}
-    dev: true
-
-  /is-regex/1.2.1:
-    resolution: {integrity: sha512-MjYsKHO5O7mCsmRGxWcLWheFqN9DJ/2TmngvjKXihe6efViPqc274+Fx/4fYj/r03+ESvBdTXK0V6tA3rgez1g==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      call-bound: 1.0.4
-      gopd: 1.2.0
-      has-tostringtag: 1.0.2
-      hasown: 2.0.2
     dev: true
 
   /is-stream-ended/0.1.4:
@@ -2718,14 +2686,6 @@ packages:
     resolution: {integrity: sha512-8ODW8TrDuMYvXRwra/Kh7/rJo9BtOfPc6qO8eAfC80CnCvSjSl0bkRM24X6/XBBEyj0v1nRUQ1LyOy3dbqOWXw==}
     dev: true
 
-  /koa-convert/2.0.0:
-    resolution: {integrity: sha512-asOvN6bFlSnxewce2e/DK3p4tltyfC4VM7ZwuTuepI7dEQVcvpyFuBcEARu1+Hxg8DIwytce2n7jrZtRlPrARA==}
-    engines: {node: '>= 10'}
-    dependencies:
-      co: 4.6.0
-      koa-compose: 4.1.0
-    dev: true
-
   /koa-is-json/1.0.0:
     resolution: {integrity: sha512-+97CtHAlWDx0ndt0J8y3P12EWLwTLMXIfMnYDev3wOTwH/RpBGMlfn4bDXlMEg1u73K6XRE9BbUp+5ZAYoRYWw==}
     dev: true
@@ -2750,35 +2710,28 @@ packages:
       - supports-color
     dev: true
 
-  /koa/2.16.1:
-    resolution: {integrity: sha512-umfX9d3iuSxTQP4pnzLOz0HKnPg0FaUUIKcye2lOiz3KPu1Y3M3xlz76dISdFPQs37P9eJz1wUpcTS6KDPn9fA==}
-    engines: {node: ^4.8.4 || ^6.10.1 || ^7.10.1 || >= 8.1.4}
+  /koa/3.0.1:
+    resolution: {integrity: sha512-oDxVkRwPOHhGlxKIDiDB2h+/l05QPtefD7nSqRgDfZt8P+QVYFWjfeK8jANf5O2YXjk8egd7KntvXKYx82wOag==}
+    engines: {node: '>= 18'}
     dependencies:
       accepts: 1.3.8
-      cache-content-type: 1.0.1
       content-disposition: 0.5.4
       content-type: 1.0.5
       cookies: 0.9.1
-      debug: 4.4.1
       delegates: 1.0.0
-      depd: 2.0.0
       destroy: 1.2.0
-      encodeurl: 1.0.2
+      encodeurl: 2.0.0
       escape-html: 1.0.3
       fresh: 0.5.2
       http-assert: 1.5.0
-      http-errors: 1.8.1
-      is-generator-function: 1.1.0
+      http-errors: 2.0.0
       koa-compose: 4.1.0
-      koa-convert: 2.0.0
+      mime-types: 3.0.1
       on-finished: 2.4.1
-      only: 0.0.2
       parseurl: 1.3.3
-      statuses: 1.5.0
-      type-is: 1.6.18
+      statuses: 2.0.1
+      type-is: 2.0.1
       vary: 1.1.2
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /kuler/2.0.0:
@@ -2872,6 +2825,42 @@ packages:
       semver: 7.7.2
     dev: true
 
+  /marklie-ts-core/1.4.47_@types+node@22.16.4:
+    resolution: {integrity: sha512-pcshtOo3daLmuwnqwey4Ao68psatgVgO5cewn4yx7tfHjmnI8R5GJuhzdRClT8PZKltE/va7FMROMDbD+AFDXg==}
+    dependencies:
+      '@google-cloud/pubsub': 4.11.0
+      '@google-cloud/secret-manager': 6.1.0
+      '@google-cloud/storage': 7.16.0
+      '@mikro-orm/core': 6.4.16
+      '@mikro-orm/migrations': 6.4.16_u4ecpqdwyzdn5j3d5lrywkkfny
+      '@mikro-orm/postgresql': 6.4.16_@mikro-orm+core@6.4.16
+      '@mikro-orm/reflection': 6.4.16_@mikro-orm+core@6.4.16
+      '@sendgrid/mail': 8.1.5
+      axios: 1.10.0
+      bcryptjs: 3.0.2
+      bullmq: 5.56.4
+      ioredis: 5.6.1
+      jsonwebtoken: 9.0.2
+      path-to-regexp: 8.2.0
+      uuid: 11.1.0
+      winston: 3.17.0
+      zod: 4.0.5
+    transitivePeerDependencies:
+      - '@types/node'
+      - better-sqlite3
+      - debug
+      - encoding
+      - libsql
+      - mariadb
+      - mysql
+      - mysql2
+      - pg
+      - pg-native
+      - sqlite3
+      - supports-color
+      - tedious
+    dev: false
+
   /math-intrinsics/1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -2879,6 +2868,11 @@ packages:
   /media-typer/0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
+    dev: true
+
+  /media-typer/1.1.0:
+    resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
+    engines: {node: '>= 0.8'}
     dev: true
 
   /merge-stream/2.0.0:
@@ -2915,6 +2909,13 @@ packages:
     engines: {node: '>= 0.6'}
     dependencies:
       mime-db: 1.52.0
+
+  /mime-types/3.0.1:
+    resolution: {integrity: sha512-xRc4oEhT6eaBpU1XF7AjpOFD+xQmXNB5OVKwp4tqCuBpHLS/ZbBDrc07mYTDqVMg6PfxUjjNp85O6Cd2Z/5HWA==}
+    engines: {node: '>= 0.6'}
+    dependencies:
+      mime-db: 1.54.0
+    dev: true
 
   /mime/3.0.0:
     resolution: {integrity: sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==}
@@ -3088,10 +3089,6 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       mimic-fn: 4.0.0
-    dev: true
-
-  /only/0.0.2:
-    resolution: {integrity: sha512-Fvw+Jemq5fjjyWz6CpKx6w9s7xxqo3+JCyM0WXWeCSOboZ8ABkyvP8ID4CZuChA/wxSx+XSJmdOm8rGVyJ1hdQ==}
     dev: true
 
   /p-cancelable/3.0.0:
@@ -3475,15 +3472,6 @@ packages:
 
   /safe-buffer/5.2.1:
     resolution: {integrity: sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==}
-
-  /safe-regex-test/1.1.0:
-    resolution: {integrity: sha512-x/+Cz4YrimQxQccJf5mKEbIa1NzeCRNI5Ecl/ekmlYaampdNLPalVyIcCZNNH3MvmqBugV5TMYZXv0ljslUlaw==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      call-bound: 1.0.4
-      es-errors: 1.3.0
-      is-regex: 1.2.1
-    dev: true
 
   /safe-stable-stringify/2.5.0:
     resolution: {integrity: sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==}
@@ -3886,6 +3874,15 @@ packages:
       mime-types: 2.1.35
     dev: true
 
+  /type-is/2.0.1:
+    resolution: {integrity: sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==}
+    engines: {node: '>= 0.6'}
+    dependencies:
+      content-type: 1.0.5
+      media-typer: 1.1.0
+      mime-types: 3.0.1
+    dev: true
+
   /typescript/5.8.3:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
@@ -4060,11 +4057,6 @@ packages:
       pend: 1.2.0
     dev: true
 
-  /ylru/1.4.0:
-    resolution: {integrity: sha512-2OQsPNEmBCvXuFlIni/a+Rn+R2pHW9INm0BxXJ4hVDA8TirqMj+J/Rp9ItLatT/5pZqWwefVrTQcHpixsxnVlA==}
-    engines: {node: '>= 4.0.0'}
-    dev: true
-
   /yocto-queue/0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
@@ -4076,43 +4068,4 @@ packages:
 
   /zod/4.0.5:
     resolution: {integrity: sha512-/5UuuRPStvHXu7RS+gmvRf4NXrNxpSllGwDnCBcJZtQsKrviYXm54yDGV2KYNLT5kq0lHGcl7lqWJLgSaG+tgA==}
-    dev: false
-
-  file:../../markly-ts-core/marklie-ts-core-1.4.29.tgz_@types+node@22.16.4:
-    resolution: {integrity: sha512-xk/Sm0tl0nreGJEMB49F3krhUnMK9sAZuyV0WPOWmqyzHJN6nnQ0lsznQ85qC6gfhixvFE0JjoDcSC46G6656A==, tarball: file:../../markly-ts-core/marklie-ts-core-1.4.29.tgz}
-    id: file:../../markly-ts-core/marklie-ts-core-1.4.29.tgz
-    name: marklie-ts-core
-    version: 1.4.29
-    dependencies:
-      '@google-cloud/pubsub': 4.11.0
-      '@google-cloud/secret-manager': 6.1.0
-      '@google-cloud/storage': 7.16.0
-      '@mikro-orm/core': 6.4.16
-      '@mikro-orm/migrations': 6.4.16_u4ecpqdwyzdn5j3d5lrywkkfny
-      '@mikro-orm/postgresql': 6.4.16_@mikro-orm+core@6.4.16
-      '@mikro-orm/reflection': 6.4.16_@mikro-orm+core@6.4.16
-      '@sendgrid/mail': 8.1.5
-      axios: 1.10.0
-      bcryptjs: 3.0.2
-      bullmq: 5.56.4
-      ioredis: 5.6.1
-      jsonwebtoken: 9.0.2
-      path-to-regexp: 8.2.0
-      uuid: 11.1.0
-      winston: 3.17.0
-      zod: 4.0.5
-    transitivePeerDependencies:
-      - '@types/node'
-      - better-sqlite3
-      - debug
-      - encoding
-      - libsql
-      - mariadb
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
     dev: false

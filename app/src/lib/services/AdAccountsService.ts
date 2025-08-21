@@ -2,6 +2,7 @@ import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { extractAccountHierarchy } from "lib/utils/FacebookDataUtil.js";
 import { OrganizationToken } from "marklie-ts-core";
 import { Database } from "marklie-ts-core";
+import { ClientAdAccount } from "marklie-ts-core";
 export class AdAccountsService {
   async getAvailableAdAccounts(
     organizationUuid: string | undefined,
@@ -21,9 +22,7 @@ export class AdAccountsService {
       );
     }
 
-    const facebookApi = new FacebookApi(
-      "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa",
-    );
+    const facebookApi = await FacebookApi.create(organizationUuid);
 
     const [businessesResponse, adAccountsResponse] = await Promise.all([
       facebookApi.getBusinesses(),
@@ -54,5 +53,30 @@ export class AdAccountsService {
     }
 
     return businessesHierarchy;
+  }
+
+  async getAdAccountCurrency(
+    adAccountId: string | undefined,
+  ): Promise<any> {
+    if (!adAccountId) {
+      throw new Error("No ad account id provided");
+    }
+
+    const database = await Database.getInstance();
+
+    const clientAdAccount = await database.em.findOne(
+      ClientAdAccount,
+      { adAccountId },
+      { populate: ["client.organization"] },
+    );
+
+    if (!clientAdAccount) {
+      throw new Error(`No ClientAdAccount found for ad account ${adAccountId}`);
+    }
+
+    const organizationUuid = (clientAdAccount as any).client.organization.uuid as string;
+
+    const api = await FacebookApi.create(organizationUuid);
+    return await api.getAdAccountCurrency(adAccountId);
   }
 }

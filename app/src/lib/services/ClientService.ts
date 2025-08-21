@@ -1,4 +1,9 @@
-import { ClientAdAccount, type SlackService } from "marklie-ts-core";
+import {
+  ClientAdAccount,
+  ScheduledJob,
+  SchedulingOption,
+  type SlackService,
+} from "marklie-ts-core";
 import {
   ActivityLog,
   ClientToken,
@@ -25,11 +30,11 @@ export class ClientService {
 
   async createClient(
     name: string,
-    orgUuid: string
+    orgUuid: string,
   ): Promise<OrganizationClient> {
     const client = database.em.create(OrganizationClient, {
       name,
-      organization: orgUuid
+      organization: orgUuid,
     });
     await database.em.persistAndFlush(client);
     return client;
@@ -105,6 +110,51 @@ export class ClientService {
       }
     }
 
+    // Sync Facebook ad accounts if provided
+    if (client.facebookAdAccounts !== undefined) {
+      const existingAdAccounts = await database.em.find(ClientAdAccount, {
+        client: existingClient,
+        provider: "facebook",
+      });
+
+      const desiredById = new Map(
+        (client.facebookAdAccounts || []).map((acc) => [acc.adAccountId, acc])
+      );
+      const existingById = new Map(
+        existingAdAccounts.map((acc) => [acc.adAccountId, acc])
+      );
+
+      // Remove ad accounts that are no longer desired
+      for (const acc of existingAdAccounts) {
+        if (!desiredById.has(acc.adAccountId)) {
+          database.em.remove(acc);
+        }
+      }
+
+      // Create or update desired ad accounts
+      for (const desired of client.facebookAdAccounts) {
+        const existing = existingById.get(desired.adAccountId);
+        if (!existing) {
+          const newAcc = database.em.create(ClientAdAccount, {
+            client: existingClient,
+            adAccountId: desired.adAccountId,
+            provider: "facebook",
+            adAccountName: desired.adAccountName,
+            businessId: desired.businessId,
+          });
+          await database.em.persist(newAcc);
+        } else {
+          if (existing.adAccountName !== desired.adAccountName) {
+            existing.adAccountName = desired.adAccountName;
+          }
+          if (existing.businessId !== desired.businessId) {
+            existing.businessId = desired.businessId;
+          }
+          await database.em.persist(existing);
+        }
+      }
+    }
+
     await database.em.flush();
     return existingClient;
   }
@@ -156,10 +206,54 @@ export class ClientService {
     await database.em.removeAndFlush(acc);
   }
 
+  async deleteClient(clientUuid: string): Promise<void> {
+    const db = await Database.getInstance();
+
+    await db.em.transactional(async (em) => {
+      const client = await em.findOneOrFail(OrganizationClient, {
+        uuid: clientUuid,
+      });
+
+      const schedulingOptions = await em.find(SchedulingOption, {
+        client: clientUuid,
+      });
+      for (const option of schedulingOptions) {
+        const jobs = await em.find(ScheduledJob, {
+          schedulingOption: option.uuid,
+        });
+        jobs.forEach((job) => em.remove(job));
+        em.remove(option);
+      }
+
+      const adAccounts = await em.find(ClientAdAccount, { client: clientUuid });
+      adAccounts.forEach((account) => em.remove(account));
+
+      const channels = await em.find(CommunicationChannel, {
+        client: clientUuid,
+      });
+      channels.forEach((channel) => em.remove(channel));
+
+      // const logs = await em.find(ActivityLog, { client: clientUuid });
+      // logs.forEach((log) => em.remove(log));
+
+      const token = await em.findOne(ClientToken, {
+        organizationClient: clientUuid,
+      });
+      if (token) em.remove(token);
+
+      client.deletedAt = new Date();
+      await em.persistAndFlush(client);
+    });
+  }
+
   async getClient(uuid: string): Promise<{
     uuid: string;
     name: string;
-    adAccounts: string[];
+    adAccounts: {
+      adAccountId: string;
+      adAccountName: string;
+      businessId: string;
+    }[];
     emails: string[];
     slack: string;
     phoneNumbers: string[];
@@ -172,13 +266,17 @@ export class ClientService {
       },
     );
 
-    console.log(client)
-
     if (!client) {
       throw new Error("Client not found");
     }
 
-    const adAccounts = client.adAccounts!.map((adAccount) => adAccount.adAccountId);
+    const adAccounts = client.adAccounts!.map((adAccount) => {
+      return {
+        adAccountId: adAccount.adAccountId,
+        adAccountName: adAccount.adAccountName,
+        businessId: adAccount.businessId,
+      }
+    });
 
     const communicationChannels = await database.em.find(CommunicationChannel, {
       client,
@@ -202,7 +300,7 @@ export class ClientService {
       adAccounts: adAccounts,
       emails,
       phoneNumbers,
-      slack: slack[0],
+      slack: slack[0]
     };
   }
 

@@ -1,15 +1,77 @@
-import axios, { type AxiosInstance } from "axios";
+import axios, { AxiosError, type AxiosInstance } from "axios";
+import {
+  Database,
+  Log,
+  MarklieError,
+  OrganizationToken,
+  ReportsConfigService,
+} from "marklie-ts-core";
+
+const database = await Database.getInstance();
+const logger = Log.getInstance().extend("facebook-api");
+const config = ReportsConfigService.getInstance();
 
 export class FacebookApi {
   private api: AxiosInstance;
-  private accessToken: string;
 
-  constructor(accessToken?: string) {
+  constructor(token?: string) {
     this.api = axios.create({
-      baseURL: `https://graph.facebook.com/v22.0`,
-      headers: { "Content-Type": "application/json" },
+      baseURL: config.getFacebookApiUrl(),
+      params: { access_token: token },
+      timeout: 30000,
     });
-    this.accessToken = accessToken || "";
+
+    this.setupInterceptors();
+  }
+
+  static async create(organizationUuid: string): Promise<FacebookApi> {
+    const tokenRecord = await database.em.findOne(OrganizationToken, {
+      organization: organizationUuid,
+    });
+
+    if (!tokenRecord)
+      throw new Error(
+        `No token found for organizationUuid ${organizationUuid}`,
+      );
+
+    return new FacebookApi(tokenRecord.token);
+  }
+
+  private setupInterceptors() {
+    this.api.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        const fbError = error.response?.data as any;
+        const fbCode = fbError?.error?.code;
+        const fbMessage = fbError?.error?.message || "";
+
+        logger.error("Facebook API Error:", {
+          status: error.response?.status,
+          fbCode,
+          fbMessage,
+          url: error.config?.url,
+        });
+
+        switch (fbCode) {
+          case 190:
+            throw MarklieError.unauthorized(
+              "Facebook access token is invalid",
+              "facebook-api",
+            );
+          case 100:
+            throw MarklieError.validation(
+              `Facebook API validation error: ${fbMessage}`,
+              { fbCode },
+            );
+          default:
+            throw MarklieError.externalApi(
+              "Facebook API",
+              error,
+              "facebook-api",
+            );
+        }
+      },
+    );
   }
 
   public async handleFacebookLogin(code: string, redirectUri: string) {
@@ -36,7 +98,6 @@ export class FacebookApi {
       params: {
         fields:
           "id,name,owned_ad_accounts{id,name,account_status,business},client_ad_accounts{id,name,account_status,business}",
-        access_token: this.accessToken,
       },
     });
 
@@ -48,10 +109,16 @@ export class FacebookApi {
       params: {
         fields: "id,name,account_status,currency,timezone_name",
         limit: 500,
-        access_token: this.accessToken,
       },
     });
 
     return response.data;
+  }
+
+  public async getAdAccountCurrency(adAccountId: string) {
+    const res = await this.api.get(`${adAccountId}`, {
+      params: { fields: "currency" },
+    });
+    return res.data;
   }
 }
