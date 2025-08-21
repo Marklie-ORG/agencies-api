@@ -1,96 +1,186 @@
-import { Database } from "marklie-ts-core";
+import {
+  Database,
+  FeatureComment,
+  FeatureSuggestion,
+  FeatureUpvote,
+  type User,
+} from "marklie-ts-core";
 
 const database = await Database.getInstance();
 
-type AnyEntity = any;
 export class FeatureSuggestionsService {
-	async createSuggestion(title: string, description: string, user: AnyEntity) {
-		const suggestion = database.em.create("FeatureSuggestion" as any, {
-			title,
-			description,
-			user,
-			organization: user.activeOrganization!,
-		});
-		await database.em.persistAndFlush(suggestion as any);
-		return suggestion as any;
-	}
+  public async createSuggestion(
+    title: string,
+    description: string,
+    user: User,
+  ) {
+    const suggestion = database.em.create(FeatureSuggestion, {
+      title,
+      description,
+      user,
+      organization: user.activeOrganization!,
+    });
+    await database.em.persistAndFlush(suggestion);
+    return { uuid: suggestion.uuid, message: "Suggestion created" };
+  }
 
-	async listSuggestions() {
-		const suggestions = await database.em.find(
-			"FeatureSuggestion" as any,
-			{} as any,
-			{ orderBy: { createdAt: "DESC" } as any, populate: ["user", "organization"] as any }
-		);
-		return suggestions as any[];
-	}
+  public async getSuggestionsWithAggregates(user: User) {
+    const suggestions = await this.listSuggestions();
+    const aggregates = await this.getAggregatesFor(user, suggestions);
 
-	async findSuggestion(uuid: string) {
-		const suggestion = await database.em.findOneOrFail(
-			"FeatureSuggestion" as any,
-			{ uuid } as any,
-			{ populate: ["user", "organization"] as any }
-		);
-		return suggestion as any;
-	}
+    return suggestions.map((s) => ({
+      uuid: s.uuid,
+      title: s.title,
+      description: s.description,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      organizationUuid: s.organization.uuid,
+      user: {
+        uuid: s.user.uuid,
+        firstName: s.user.firstName,
+        lastName: s.user.lastName,
+        email: s.user.email,
+      },
+      upvotes: aggregates.upvoteCounts.get(s.uuid) || 0,
+      userHasUpvoted: aggregates.userUpvoted.has(s.uuid),
+      commentsCount: aggregates.commentCounts.get(s.uuid) || 0,
+    }));
+  }
 
-	async addComment(suggestionUuid: string, comment: string, user: AnyEntity) {
-		const suggestion = await database.em.findOneOrFail("FeatureSuggestion" as any, {
-			uuid: suggestionUuid,
-		} as any);
-		const newComment = database.em.create("FeatureComment" as any, {
-			suggestion,
-			comment,
-			user,
-		});
-		await database.em.persistAndFlush(newComment as any);
-		return newComment as any;
-	}
+  public async getSingleSuggestionWithAggregates(uuid: string, user: User) {
+    const suggestion = await this.findSuggestion(uuid);
+    const aggregates = await this.getAggregatesFor(user, [suggestion]);
 
-	async toggleUpvote(suggestionUuid: string, user: AnyEntity) {
-		const suggestion = await database.em.findOneOrFail("FeatureSuggestion" as any, {
-			uuid: suggestionUuid,
-		} as any);
-		const existing = await database.em.findOne("FeatureUpvote" as any, {
-			suggestion,
-			user,
-		} as any);
-		if (existing) {
-			await database.em.removeAndFlush(existing as any);
-			return { upvoted: false } as const;
-		}
-		const upvote = database.em.create("FeatureUpvote" as any, { suggestion, user, value: true } as any);
-		await database.em.persistAndFlush(upvote as any);
-		return { upvoted: true } as const;
-	}
+    return {
+      uuid: suggestion.uuid,
+      title: suggestion.title,
+      description: suggestion.description,
+      createdAt: suggestion.createdAt,
+      updatedAt: suggestion.updatedAt,
+      organizationUuid: suggestion.organization.uuid,
+      user: {
+        uuid: suggestion.user.uuid,
+        firstName: suggestion.user.firstName,
+        lastName: suggestion.user.lastName,
+        email: suggestion.user.email,
+      },
+      upvotes: aggregates.upvoteCounts.get(suggestion.uuid) || 0,
+      userHasUpvoted: aggregates.userUpvoted.has(suggestion.uuid),
+      commentsCount: aggregates.commentCounts.get(suggestion.uuid) || 0,
+    };
+  }
 
-	async getComments(suggestionUuid: string, _user: AnyEntity) {
-		const comments = await database.em.find(
-			"FeatureComment" as any,
-			{ suggestion: { uuid: suggestionUuid } } as any,
-			{ orderBy: { createdAt: "ASC" } as any, populate: ["user", "suggestion"] as any }
-		);
-		return comments as any[];
-	}
+  public async getFormattedComments(suggestionUuid: string) {
+    const comments = await database.em.find(
+      FeatureComment,
+      { suggestion: { uuid: suggestionUuid } },
+      {
+        orderBy: { createdAt: "ASC" },
+        populate: ["user", "suggestion"],
+      },
+    );
 
-	async getAggregatesFor(user: AnyEntity, suggestions: any[]) {
-		const suggestionUuids = suggestions.map((s) => (s as any).uuid);
-		if (suggestionUuids.length === 0) return { upvoteCounts: new Map<string, number>(), userUpvoted: new Set<string>(), commentCounts: new Map<string, number>() };
-		const [upvotes, comments] = await Promise.all([
-			database.em.find("FeatureUpvote" as any, { suggestion: { uuid: { $in: suggestionUuids } } } as any),
-			database.em.find("FeatureComment" as any, { suggestion: { uuid: { $in: suggestionUuids } } } as any),
-		]);
-		const upvoteCounts = new Map<string, number>();
-		const userUpvoted = new Set<string>();
-		for (const u of upvotes as any[]) {
-			const su = (u as any).suggestion.uuid;
-			upvoteCounts.set(su, (upvoteCounts.get(su) || 0) + 1);
-			if ((u as any).user.uuid === user.uuid) userUpvoted.add(su);
-		}
-		const commentCounts = new Map<string, number>();
-		for (const c of comments as any[]) {
-			const su = (c as any).suggestion.uuid;
-			commentCounts.set(su, (commentCounts.get(su) || 0) + 1);
-		}
-		return { upvoteCounts, userUpvoted, commentCounts };
-	}
-} 
+    return comments.map((c) => ({
+      uuid: c.uuid,
+      comment: c.comment,
+      createdAt: c.createdAt,
+      user: {
+        uuid: c.user.uuid,
+        firstName: c.user.firstName,
+        lastName: c.user.lastName,
+        email: c.user.email,
+      },
+    }));
+  }
+
+  public async toggleUpvote(suggestionUuid: string, user: User) {
+    const suggestion = await database.em.findOneOrFail(FeatureSuggestion, {
+      uuid: suggestionUuid,
+    });
+
+    const existing = await database.em.findOne(FeatureUpvote, {
+      suggestion,
+      user,
+    });
+
+    if (existing) {
+      await database.em.removeAndFlush(existing);
+      return { upvoted: false };
+    }
+
+    const upvote = database.em.create(FeatureUpvote, {
+      suggestion,
+      user,
+      value: true,
+    });
+
+    await database.em.persistAndFlush(upvote);
+    return { upvoted: true };
+  }
+
+  private async listSuggestions(): Promise<FeatureSuggestion[]> {
+    return await database.em.findAll(FeatureSuggestion, {
+      orderBy: { createdAt: "DESC" },
+      populate: ["user", "organization"],
+    });
+  }
+
+  private async findSuggestion(uuid: string): Promise<FeatureSuggestion> {
+    return await database.em.findOneOrFail(
+      FeatureSuggestion,
+      { uuid },
+      { populate: ["user", "organization"] },
+    );
+  }
+
+  private async getAggregatesFor(user: User, suggestions: FeatureSuggestion[]) {
+    const suggestionUuids = suggestions.map((s) => s.uuid);
+
+    const [upvotes, comments] = await Promise.all([
+      database.em.find(FeatureUpvote, {
+        suggestion: { uuid: { $in: suggestionUuids } },
+      }),
+      database.em.find(FeatureComment, {
+        suggestion: { uuid: { $in: suggestionUuids } },
+      }),
+    ]);
+
+    const upvoteCounts = new Map<string, number>();
+    const userUpvoted = new Set<string>();
+    const commentCounts = new Map<string, number>();
+
+    for (const u of upvotes) {
+      const id = u.suggestion.uuid;
+      upvoteCounts.set(id, (upvoteCounts.get(id) || 0) + 1);
+      if (u.user.uuid === user.uuid) {
+        userUpvoted.add(id);
+      }
+    }
+
+    for (const c of comments) {
+      const id = c.suggestion.uuid;
+      commentCounts.set(id, (commentCounts.get(id) || 0) + 1);
+    }
+
+    return { upvoteCounts, userUpvoted, commentCounts };
+  }
+
+  public async addComment(suggestionUuid: string, comment: string, user: User) {
+    const suggestion = await database.em.findOneOrFail(FeatureSuggestion, {
+      uuid: suggestionUuid,
+    });
+
+    const newComment = database.em.create(FeatureComment, {
+      suggestion,
+      comment,
+      user,
+    });
+
+    await database.em.persistAndFlush(newComment);
+
+    return {
+      uuid: newComment.uuid,
+      message: "Comment added",
+    };
+  }
+}
