@@ -13,6 +13,7 @@ export class AdAccountsController extends Router {
 
   private setUpRoutes() {
     this.get("/businesses-hierarchy", this.getBusinessesHierarchy.bind(this));
+    this.get("/currency", this.getAdAccountCurrency.bind(this));
   }
 
   private async getBusinessesHierarchy(ctx: Context) {
@@ -21,6 +22,17 @@ export class AdAccountsController extends Router {
 
     ctx.body =
       await this.adAccountsService.getAvailableAdAccounts(organizationUuid);
+    ctx.status = 200;
+  }
+
+  private async getAdAccountCurrency(ctx: Context) {
+    const adAccountId = ctx.query.adAccountId as string;
+    const organizationUuid = ctx.query.organizationUuid as string;
+
+    ctx.body = await this.adAccountsService.getAdAccountCurrency(
+      adAccountId,
+      organizationUuid,
+    );
     ctx.status = 200;
   }
 }

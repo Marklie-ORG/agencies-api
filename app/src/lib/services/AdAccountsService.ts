@@ -21,9 +21,7 @@ export class AdAccountsService {
       );
     }
 
-    const facebookApi = new FacebookApi(
-      "EAASERizF7PoBO9DxAMbCWwZAJ4htpGSdj6kmRbdKBLLEiPrZC8bOtoXyoBiwNhq3POHk2rEVXRviwRE2gWYzFSVwvQMi2vZAZCB8bmvQbkZCEvyNWD2KpHcNoMEpWtvTo6NfZAG7IKivZA3ZCMzrxapNGQ4RHmQ6s4a333bEjZCZATlmEBzUQ05KMcJRHaEXGa",
-    );
+    const facebookApi = await FacebookApi.create(organizationUuid);
 
     const [businessesResponse, adAccountsResponse] = await Promise.all([
       facebookApi.getBusinesses(),
@@ -54,5 +52,17 @@ export class AdAccountsService {
     }
 
     return businessesHierarchy;
+  }
+
+  async getAdAccountCurrency(
+    adAccountId: string | undefined,
+    organizationUuid: string | undefined,
+  ): Promise<Report[]> {
+    if (!adAccountId || !organizationUuid) {
+      throw new Error("No ad account or client uuid provided");
+    }
+
+    const api = await FacebookApi.create(organizationUuid);
+    return await api.getAdAccountCurrency(adAccountId);
   }
 }

@@ -172,8 +172,6 @@ export class ClientService {
       },
     );
 
-    console.log(client)
-
     if (!client) {
       throw new Error("Client not found");
     }

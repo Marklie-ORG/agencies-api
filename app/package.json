@@ -23,9 +23,9 @@
     "dotenv": "^16.5.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "marklie-ts-core": "1.4.38",
     "uuid": "^11.1.0",
-    "zod": "^4.0.5"
+    "zod": "^4.0.5",
+    "marklie-ts-core": "1.4.39"
   },
   "devDependencies": {
     "@swc/cli": "^0.6.0",
@@ -37,7 +37,7 @@
     "@types/koa__cors": "^5.0.0",
     "@types/luxon": "^3.6.0",
     "@types/node": "^22.10.10",
-    "koa": "^2.13.4",
+    "koa": "3.0.1",
     "koa-body": "^6.0.1",
     "koa-bodyparser": "^4.3.0",
     "koa-json": "^2.0.2",

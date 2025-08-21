@@ -64,7 +64,7 @@ export class ClientController extends Router {
 
     const client = await this.clientsService.createClient(
       body.name,
-      user.activeOrganization.uuid
+      user.activeOrganization.uuid,
     );
 
     await this.clientsService.updateClient(client.uuid, {
