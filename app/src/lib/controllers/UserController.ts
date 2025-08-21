@@ -2,25 +2,30 @@ import Router from "koa-router";
 import type { Context } from "koa";
 import { UserService } from "../services/UserService.js";
 import type {
-  SetActiveOrganizationRequest,
-  SetNameRequest,
-  HandleFacebookLoginRequest,
-  HandleSlackLoginRequest,
-  VerifyEmailChangeRequest,
   ChangeEmailRequest,
   ChangePasswordRequest,
-  SendPasswordRecoveryEmailRequest,
-  VerifyPasswordRecoveryRequest,
+  HandleFacebookLoginRequest,
+  HandleSlackLoginRequest,
   SendFeedbackRequest,
+  SendPasswordRecoveryEmailRequest,
+  SetActiveOrganizationRequest,
+  SetNameRequest,
+  VerifyEmailChangeRequest,
+  VerifyPasswordRecoveryRequest,
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
-import { User } from "marklie-ts-core";
+import {
+  Database,
+  SlackApi,
+  SlackService,
+  TokenService,
+  User,
+} from "marklie-ts-core";
 import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { AgencyService } from "lib/services/AgencyService.js";
-import { SlackApi } from "marklie-ts-core";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { ClientService } from "../services/ClientService.js";
-import { SlackService } from "marklie-ts-core";
-import { TokenService } from "marklie-ts-core";
+
+const database = await Database.getInstance();
 
 export class UserController extends Router {
   private readonly userService: UserService;
@@ -58,7 +63,13 @@ export class UserController extends Router {
   }
 
   private async me(ctx: Context) {
-    ctx.body = ctx.state.user as User;
+    ctx.body = await database.em.findOneOrFail(
+      User,
+      {
+        uuid: ctx.state.user.uuid,
+      },
+      { populate: ["activeOrganization"] },
+    );
     ctx.status = 200;
   }
 
