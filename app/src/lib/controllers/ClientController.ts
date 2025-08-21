@@ -113,6 +113,7 @@ export class ClientController extends Router {
     const body = ctx.request.body as UpdateClientRequest;
 
     ctx.body = await this.clientsService.updateClient(clientUuid, body);
+
     ctx.status = 200;
   }
 

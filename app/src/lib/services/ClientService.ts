@@ -105,6 +105,51 @@ export class ClientService {
       }
     }
 
+    // Sync Facebook ad accounts if provided
+    if (client.facebookAdAccounts !== undefined) {
+      const existingAdAccounts = await database.em.find(ClientAdAccount, {
+        client: existingClient,
+        provider: "facebook",
+      });
+
+      const desiredById = new Map(
+        (client.facebookAdAccounts || []).map((acc) => [acc.adAccountId, acc])
+      );
+      const existingById = new Map(
+        existingAdAccounts.map((acc) => [acc.adAccountId, acc])
+      );
+
+      // Remove ad accounts that are no longer desired
+      for (const acc of existingAdAccounts) {
+        if (!desiredById.has(acc.adAccountId)) {
+          database.em.remove(acc);
+        }
+      }
+
+      // Create or update desired ad accounts
+      for (const desired of client.facebookAdAccounts) {
+        const existing = existingById.get(desired.adAccountId);
+        if (!existing) {
+          const newAcc = database.em.create(ClientAdAccount, {
+            client: existingClient,
+            adAccountId: desired.adAccountId,
+            provider: "facebook",
+            adAccountName: desired.adAccountName,
+            businessId: desired.businessId,
+          });
+          await database.em.persist(newAcc);
+        } else {
+          if (existing.adAccountName !== desired.adAccountName) {
+            existing.adAccountName = desired.adAccountName;
+          }
+          if (existing.businessId !== desired.businessId) {
+            existing.businessId = desired.businessId;
+          }
+          await database.em.persist(existing);
+        }
+      }
+    }
+
     await database.em.flush();
     return existingClient;
   }
@@ -159,7 +204,11 @@ export class ClientService {
   async getClient(uuid: string): Promise<{
     uuid: string;
     name: string;
-    adAccounts: string[];
+    adAccounts: {
+      adAccountId: string;
+      adAccountName: string;
+      businessId: string;
+    }[];
     emails: string[];
     slack: string;
     phoneNumbers: string[];
@@ -176,7 +225,13 @@ export class ClientService {
       throw new Error("Client not found");
     }
 
-    const adAccounts = client.adAccounts!.map((adAccount) => adAccount.adAccountId);
+    const adAccounts = client.adAccounts!.map((adAccount) => {
+      return {
+        adAccountId: adAccount.adAccountId,
+        adAccountName: adAccount.adAccountName,
+        businessId: adAccount.businessId,
+      }
+    });
 
     const communicationChannels = await database.em.find(CommunicationChannel, {
       client,
@@ -200,7 +255,7 @@ export class ClientService {
       adAccounts: adAccounts,
       emails,
       phoneNumbers,
-      slack: slack[0],
+      slack: slack[0]
     };
   }
 
