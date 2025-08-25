@@ -27,11 +27,11 @@ export class AdAccountsController extends Router {
 
   private async getAdAccountCurrency(ctx: Context) {
     const adAccountId = ctx.query.adAccountId as string;
-    const organizationUuid = ctx.query.organizationUuid as string;
+    const user = ctx.state.user as User;
 
     ctx.body = await this.adAccountsService.getAdAccountCurrency(
       adAccountId,
-      organizationUuid,
+      user.activeOrganization?.uuid,
     );
     ctx.status = 200;
   }

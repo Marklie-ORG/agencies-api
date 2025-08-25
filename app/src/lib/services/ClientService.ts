@@ -1,15 +1,13 @@
 import {
-  ClientAdAccount,
-  ScheduledJob,
-  SchedulingOption,
-  type SlackService,
-} from "marklie-ts-core";
-import {
   ActivityLog,
+  ClientAdAccount,
   ClientToken,
   Database,
   OrganizationClient,
+  ScheduledJob,
+  SchedulingOption,
   SlackApi,
+  type SlackService,
   TokenService,
 } from "marklie-ts-core";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
@@ -32,149 +30,159 @@ export class ClientService {
     name: string,
     orgUuid: string,
   ): Promise<OrganizationClient> {
-    const client = database.em.create(OrganizationClient, {
-      name,
-      organization: orgUuid,
+    const em = database.em.fork({ clear: true });
+    return em.transactional(async (tem) => {
+      const client = tem.create(OrganizationClient, {
+        name,
+        organization: orgUuid,
+      });
+      await tem.persistAndFlush(client);
+      return tem.findOneOrFail(
+        OrganizationClient,
+        { uuid: client.uuid },
+        { refresh: true },
+      );
     });
-    await database.em.persistAndFlush(client);
-    return client;
   }
 
   async updateClient(
     clientUuid: string,
     client: UpdateClientRequest,
   ): Promise<OrganizationClient> {
-    const existingClient = await database.em.findOne(OrganizationClient, {
-      uuid: clientUuid,
-    });
-    if (!existingClient) {
-      throw new Error("Client not found");
-    }
-
-    if (client.name) {
-      existingClient.name = client.name;
-    }
-
-    if (client.emails) {
-      const existingEmailChannels = await database.em.find(EmailChannel, {
-        client: existingClient,
+    const em = database.em.fork({ clear: true });
+    return await em.transactional(async (tem) => {
+      const existingClient = await tem.findOne(OrganizationClient, {
+        uuid: clientUuid,
       });
-
-      const newEmails = new Set(client.emails);
-
-      const oldEmails = new Set(
-        existingEmailChannels.map((ch: EmailChannel) => ch.emailAddress),
-      );
-
-      for (const ch of existingEmailChannels) {
-        if (!newEmails.has(ch.emailAddress)) {
-          database.em.remove(ch);
-        }
+      if (!existingClient) throw new Error("Client not found");
+      if (typeof client.name === "string" && client.name.trim().length) {
+        existingClient.name = client.name.trim();
       }
-
-      for (const email of client.emails) {
-        console.log(email, !oldEmails.has(email));
-
-        if (!oldEmails.has(email)) {
-          const newChannel = new EmailChannel();
-          newChannel.client = existingClient;
-          newChannel.emailAddress = email;
-          await database.em.persist(newChannel);
-        }
-      }
-    }
-
-    if (client.phoneNumbers !== undefined) {
-      const existingWhatsappChannels = await database.em.find(WhatsAppChannel, {
-        client: existingClient,
-      });
-
-      const newPhones = new Set(client.phoneNumbers);
-      const oldPhones = new Set(
-        existingWhatsappChannels.map((ch: WhatsAppChannel) => ch.phoneNumber),
-      );
-
-      for (const ch of existingWhatsappChannels) {
-        if (!newPhones.has(ch.phoneNumber)) {
-          database.em.remove(ch);
-        }
-      }
-
-      for (const phone of client.phoneNumbers) {
-        if (!oldPhones.has(phone)) {
-          const newChannel = new WhatsAppChannel();
-          newChannel.client = existingClient;
-          newChannel.phoneNumber = phone;
-          await database.em.persist(newChannel);
-        }
-      }
-    }
-
-    // Sync Facebook ad accounts if provided
-    if (client.facebookAdAccounts !== undefined) {
-      const existingAdAccounts = await database.em.find(ClientAdAccount, {
-        client: existingClient,
-        provider: "facebook",
-      });
-
-      const desiredById = new Map(
-        (client.facebookAdAccounts || []).map((acc) => [acc.adAccountId, acc])
-      );
-      const existingById = new Map(
-        existingAdAccounts.map((acc) => [acc.adAccountId, acc])
-      );
-
-      // Remove ad accounts that are no longer desired
-      for (const acc of existingAdAccounts) {
-        if (!desiredById.has(acc.adAccountId)) {
-          database.em.remove(acc);
-        }
-      }
-
-      // Create or update desired ad accounts
-      for (const desired of client.facebookAdAccounts) {
-        const existing = existingById.get(desired.adAccountId);
-        if (!existing) {
-          const newAcc = database.em.create(ClientAdAccount, {
-            client: existingClient,
-            adAccountId: desired.adAccountId,
-            provider: "facebook",
-            adAccountName: desired.adAccountName,
-            businessId: desired.businessId,
-          });
-          await database.em.persist(newAcc);
+      if (client.emails !== undefined) {
+        const newEmails = new Set(
+          (client.emails || []).map((e) => e.trim()).filter(Boolean),
+        );
+        if (newEmails.size === 0) {
+          await tem.nativeDelete(EmailChannel, { client: existingClient });
         } else {
-          if (existing.adAccountName !== desired.adAccountName) {
-            existing.adAccountName = desired.adAccountName;
+          await tem.nativeDelete(EmailChannel, {
+            client: existingClient,
+            emailAddress: { $nin: [...newEmails] },
+          });
+        }
+        if (newEmails.size) {
+          const existing = await tem.find(EmailChannel, {
+            client: existingClient,
+          });
+          const oldEmails = new Set(existing.map((ch) => ch.emailAddress));
+          for (const email of newEmails) {
+            if (!oldEmails.has(email)) {
+              tem.persist(
+                tem.create(EmailChannel, {
+                  client: existingClient,
+                  emailAddress: email,
+                  active: true,
+                }),
+              );
+            }
           }
-          if (existing.businessId !== desired.businessId) {
-            existing.businessId = desired.businessId;
-          }
-          await database.em.persist(existing);
         }
       }
-    }
-
-    await database.em.flush();
-    return existingClient;
+      if (client.phoneNumbers !== undefined) {
+        const newPhones = new Set(
+          (client.phoneNumbers || []).map((p) => p.trim()).filter(Boolean),
+        );
+        if (newPhones.size === 0) {
+          await tem.nativeDelete(WhatsAppChannel, { client: existingClient });
+        } else {
+          await tem.nativeDelete(WhatsAppChannel, {
+            client: existingClient,
+            phoneNumber: { $nin: [...newPhones] },
+          });
+        }
+        if (newPhones.size) {
+          const existing = await tem.find(WhatsAppChannel, {
+            client: existingClient,
+          });
+          const oldPhones = new Set(existing.map((ch) => ch.phoneNumber));
+          for (const phone of newPhones) {
+            if (!oldPhones.has(phone)) {
+              tem.persist(
+                tem.create(WhatsAppChannel, {
+                  client: existingClient,
+                  phoneNumber: phone,
+                  active: true,
+                }),
+              );
+            }
+          }
+        }
+      }
+      if (client.facebookAdAccounts !== undefined) {
+        const desired = (client.facebookAdAccounts || [])
+          .map((a) => ({
+            adAccountId: a.adAccountId.trim(),
+            adAccountName: a.adAccountName?.trim() ?? null,
+            businessId: a.businessId?.trim() ?? null,
+          }))
+          .filter((a) => a.adAccountId);
+        const desiredIds = new Set(desired.map((a) => a.adAccountId));
+        const existing = await tem.find(ClientAdAccount, {
+          client: existingClient,
+          provider: "facebook",
+        });
+        await tem.nativeDelete(ClientAdAccount, {
+          client: existingClient,
+          provider: "facebook",
+          adAccountId: { $nin: [...desiredIds] },
+        });
+        const existingById = new Map(existing.map((a) => [a.adAccountId, a]));
+        for (const d of desired) {
+          const found = existingById.get(d.adAccountId);
+          if (!found) {
+            tem.persist(
+              tem.create(ClientAdAccount, {
+                client: existingClient,
+                provider: "facebook",
+                adAccountId: d.adAccountId,
+                adAccountName: d.adAccountName,
+                businessId: d.businessId,
+              }),
+            );
+          } else {
+            let dirty = false;
+            if (found.adAccountName !== d.adAccountName) {
+              found.adAccountName = d.adAccountName;
+              dirty = true;
+            }
+            if (found.businessId !== d.businessId) {
+              found.businessId = d.businessId;
+              dirty = true;
+            }
+            if (dirty) tem.persist(found);
+          }
+        }
+      }
+      await tem.flush();
+      return await tem.findOneOrFail(
+        OrganizationClient,
+        { uuid: clientUuid },
+        { populate: ["communicationChannels", "adAccounts"], refresh: true },
+      );
+    });
   }
 
   async getClients(orgUuid: string): Promise<OrganizationClient[]> {
-    return await database.em.find(OrganizationClient, {
-      organization: orgUuid,
-    });
+    const em = database.em.fork({ clear: true });
+    return await em.find(OrganizationClient, { organization: orgUuid });
   }
 
   async getClientLogs(clientUuid: string): Promise<ActivityLog[]> {
-    return await database.em.find(
+    const em = database.em.fork({ clear: true });
+    return await em.find(
       ActivityLog,
-      {
-        client: clientUuid,
-      },
-      {
-        populate: ["client"],
-        orderBy: { createdAt: "DESC" },
-      },
+      { client: clientUuid },
+      { populate: ["client"], orderBy: { createdAt: "DESC" } },
     );
   }
 
@@ -184,36 +192,36 @@ export class ClientService {
     adAccountName: string,
     businessId: string,
   ): Promise<void> {
-    const newAcc = database.em.create(ClientAdAccount, {
+    const em = database.em.fork({ clear: true });
+    const newAcc = em.create(ClientAdAccount, {
       client: clientUuid,
       adAccountId,
       provider: "facebook",
-      adAccountName: adAccountName,
-      businessId: businessId,
+      adAccountName,
+      businessId,
     });
-    await database.em.persistAndFlush(newAcc);
+    await em.persistAndFlush(newAcc);
   }
 
   async deleteClientFacebookAdAccount(
     clientUuid: string,
     adAccountId: string,
   ): Promise<void> {
-    const acc = await database.em.findOne(ClientAdAccount, {
+    const em = database.em.fork({ clear: true });
+    const acc = await em.findOne(ClientAdAccount, {
       client: clientUuid,
       adAccountId,
     });
     if (!acc) throw new Error("Client Facebook Ad Account not found");
-    await database.em.removeAndFlush(acc);
+    await em.removeAndFlush(acc);
   }
 
   async deleteClient(clientUuid: string): Promise<void> {
     const db = await Database.getInstance();
-
     await db.em.transactional(async (em) => {
       const client = await em.findOneOrFail(OrganizationClient, {
         uuid: clientUuid,
       });
-
       const schedulingOptions = await em.find(SchedulingOption, {
         client: clientUuid,
       });
@@ -224,23 +232,16 @@ export class ClientService {
         jobs.forEach((job) => em.remove(job));
         em.remove(option);
       }
-
       const adAccounts = await em.find(ClientAdAccount, { client: clientUuid });
       adAccounts.forEach((account) => em.remove(account));
-
       const channels = await em.find(CommunicationChannel, {
         client: clientUuid,
       });
       channels.forEach((channel) => em.remove(channel));
-
-      // const logs = await em.find(ActivityLog, { client: clientUuid });
-      // logs.forEach((log) => em.remove(log));
-
       const token = await em.findOne(ClientToken, {
         organizationClient: clientUuid,
       });
       if (token) em.remove(token);
-
       client.deletedAt = new Date();
       await em.persistAndFlush(client);
     });
@@ -258,58 +259,49 @@ export class ClientService {
     slack: string;
     phoneNumbers: string[];
   }> {
-    const client = await database.em.findOne(
+    const em = database.em.fork({ clear: true });
+    const client = await em.findOne(
       OrganizationClient,
       { uuid },
       {
-        populate: ["schedulingOption.client", "adAccounts.client"],
+        populate: ["adAccounts"],
+        strategy: "joined",
+        refresh: true,
       },
     );
-
-    if (!client) {
-      throw new Error("Client not found");
-    }
-
-    const adAccounts = client.adAccounts!.map((adAccount) => {
-      return {
-        adAccountId: adAccount.adAccountId,
-        adAccountName: adAccount.adAccountName,
-        businessId: adAccount.businessId,
-      }
-    });
-
-    const communicationChannels = await database.em.find(CommunicationChannel, {
+    if (!client) throw new Error("Client not found");
+    const adAccounts = client.adAccounts!.map((adAccount) => ({
+      adAccountId: adAccount.adAccountId,
+      adAccountName: adAccount.adAccountName,
+      businessId: adAccount.businessId,
+    }));
+    const communicationChannels = await em.find(CommunicationChannel, {
       client,
     });
-
     const emails = communicationChannels
-      .filter((ch) => ch.constructor.name === "EmailChannel")
+      .filter((ch) => ch instanceof EmailChannel)
       .map((ch: any) => ch.emailAddress);
-
     const phoneNumbers = communicationChannels
-      .filter((ch) => ch.constructor.name === "WhatsAppChannel")
+      .filter((ch) => ch instanceof WhatsAppChannel)
       .map((ch: any) => ch.phoneNumber);
-
     const slack = communicationChannels
-      .filter((ch) => ch.constructor.name === "SlackChannel")
+      .filter((ch: any) => ch.constructor.name === "SlackChannel")
       .map((ch: any) => ch.conversationId);
-
     return {
       uuid: client.uuid,
       name: client.name,
-      adAccounts: adAccounts,
+      adAccounts,
       emails,
       phoneNumbers,
-      slack: slack[0]
+      slack: slack[0],
     };
   }
 
   async getClientFacebookAdAccounts(
     clientUuid: string,
   ): Promise<ClientAdAccount[]> {
-    return await database.em.find(ClientAdAccount, {
-      client: clientUuid,
-    });
+    const em = database.em.fork({ clear: true });
+    return await em.find(ClientAdAccount, { client: clientUuid });
   }
 
   async getConnectedSlackWorkspaces(organizationUuid: string): Promise<
@@ -322,17 +314,12 @@ export class ClientService {
       image: string;
     }>
   > {
-    const tokens = await database.em.find(
+    const em = database.em.fork({ clear: true });
+    const tokens = await em.find(
       ClientToken,
-      {
-        organization: { uuid: organizationUuid },
-        type: ClientTokenType.SLACK,
-      },
-      {
-        populate: ["organizationClient"],
-      },
+      { organization: { uuid: organizationUuid }, type: ClientTokenType.SLACK },
+      { populate: ["organizationClient"] },
     );
-
     return await Promise.all(
       tokens.map(async (token: ClientToken) => {
         const slackApi = new SlackApi(token.token);
@@ -353,11 +340,9 @@ export class ClientService {
     clientUuid: string,
     token: string,
   ): Promise<void> {
-    const client = await database.em.findOne(OrganizationClient, {
-      uuid: clientUuid,
-    });
+    const em = database.em.fork({ clear: true });
+    const client = await em.findOne(OrganizationClient, { uuid: clientUuid });
     if (!client) throw new Error("Client not found");
-
     await this.tokenService.createOrUpdateToken(
       client,
       token,
@@ -370,13 +355,11 @@ export class ClientService {
     token: string,
     type: ClientTokenType,
   ): Promise<void> {
-    const client = await database.em.findOne(OrganizationClient, {
-      uuid: clientUuid,
-    });
+    const em = database.em.fork({ clear: true });
+    const client = await em.findOne(OrganizationClient, { uuid: clientUuid });
     if (!client) throw new Error("Client not found");
     await this.tokenService.createOrUpdateToken(client, token, type);
-
-    await database.em.persistAndFlush(client);
+    await em.persistAndFlush(client);
   }
 
   async isSlackConnected(clientUuid: string): Promise<boolean> {
