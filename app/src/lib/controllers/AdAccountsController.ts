@@ -27,14 +27,11 @@ export class AdAccountsController extends Router {
 
   private async getAdAccountCurrency(ctx: Context) {
     const adAccountId = ctx.query.adAccountId as string;
-    if (!adAccountId) {
-      ctx.status = 400;
-      ctx.body = { message: "Missing adAccountId" };
-      return;
-    }
+    const user = ctx.state.user as User;
 
     ctx.body = await this.adAccountsService.getAdAccountCurrency(
       adAccountId,
+      user.activeOrganization?.uuid,
     );
     ctx.status = 200;
   }
