@@ -176,7 +176,29 @@ export class ClientService {
 
   async getClients(orgUuid: string): Promise<OrganizationClient[]> {
     const em = database.em.fork({ clear: true });
-    return await em.find(OrganizationClient, { organization: orgUuid });
+
+    const clients = await em.find(OrganizationClient, {
+      organization: orgUuid,
+    });
+
+    return await Promise.all(
+      clients.map(async (client) => {
+        const [count, last] = await Promise.all([
+          em.count(SchedulingOption, { client: client.uuid }),
+          em.findOne(
+            SchedulingOption,
+            { client: client.uuid, lastRun: { $ne: null } },
+            { fields: ["lastRun"], orderBy: { lastRun: "DESC" } },
+          ),
+        ]);
+
+        return {
+          ...client,
+          schedulesCount: count,
+          lastActivity: last?.lastRun,
+        };
+      }),
+    );
   }
 
   async getClientLogs(clientUuid: string): Promise<ActivityLog[]> {
