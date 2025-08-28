@@ -63,12 +63,19 @@ export class UserController extends Router {
   }
 
   private async me(ctx: Context) {
-    ctx.body = await database.em.findOneOrFail(
+    ctx.body = await database.em.find(
       User,
+      { uuid: ctx.state.user.uuid },
       {
-        uuid: ctx.state.user.uuid,
+        populate: ["activeOrganization"],
+        fields: [
+          "uuid",
+          "email",
+          "firstName",
+          "lastName",
+          "activeOrganization.*",
+        ],
       },
-      { populate: ["activeOrganization"] },
     );
     ctx.status = 200;
   }
