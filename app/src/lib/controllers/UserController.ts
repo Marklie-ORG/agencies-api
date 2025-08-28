@@ -63,7 +63,7 @@ export class UserController extends Router {
   }
 
   private async me(ctx: Context) {
-    ctx.body = await database.em.find(
+    ctx.body = await database.em.findOne(
       User,
       { uuid: ctx.state.user.uuid },
       {
