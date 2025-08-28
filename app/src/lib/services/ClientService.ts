@@ -174,7 +174,17 @@ export class ClientService {
     });
   }
 
-  async getClients(orgUuid: string): Promise<OrganizationClient[]> {
+  async getClients(orgUuid: string): Promise<
+    Awaited<{
+      uuid: string;
+      name: string;
+      createdAt: Date;
+      updatedAt: Date;
+      deletedAt: Date | undefined;
+      schedulesCount: number;
+      lastActivity: any;
+    }>[]
+  > {
     const em = database.em.fork({ clear: true });
 
     const clients = await em.find(OrganizationClient, {
@@ -184,7 +194,7 @@ export class ClientService {
     return await Promise.all(
       clients.map(async (client) => {
         const [count, last] = await Promise.all([
-          em.count(SchedulingOption, { client: client.uuid }),
+          em.count(SchedulingOption, { client: client.uuid, isActive: true }),
           em.findOne(
             SchedulingOption,
             { client: client.uuid, lastRun: { $ne: null } },
@@ -193,7 +203,11 @@ export class ClientService {
         ]);
 
         return {
-          ...client,
+          uuid: client.uuid,
+          name: client.name,
+          createdAt: client.createdAt,
+          updatedAt: client.updatedAt,
+          deletedAt: client.deletedAt,
           schedulesCount: count,
           lastActivity: last?.lastRun,
         };
