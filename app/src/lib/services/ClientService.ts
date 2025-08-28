@@ -4,6 +4,7 @@ import {
   ClientToken,
   Database,
   OrganizationClient,
+  RedisClient,
   ScheduledJob,
   SchedulingOption,
   SlackApi,
@@ -17,6 +18,7 @@ import {
   EmailChannel,
   WhatsAppChannel,
 } from "marklie-ts-core/dist/lib/entities/ClientCommunicationChannel.js";
+import Redis from "ioredis";
 
 const database = await Database.getInstance();
 
@@ -172,9 +174,45 @@ export class ClientService {
     });
   }
 
-  async getClients(orgUuid: string): Promise<OrganizationClient[]> {
+  async getClients(orgUuid: string): Promise<
+    Awaited<{
+      uuid: string;
+      name: string;
+      createdAt: Date;
+      updatedAt: Date;
+      deletedAt: Date | undefined;
+      schedulesCount: number;
+      lastActivity: any;
+    }>[]
+  > {
     const em = database.em.fork({ clear: true });
-    return await em.find(OrganizationClient, { organization: orgUuid });
+
+    const clients = await em.find(OrganizationClient, {
+      organization: orgUuid,
+    });
+
+    return await Promise.all(
+      clients.map(async (client) => {
+        const [count, last] = await Promise.all([
+          em.count(SchedulingOption, { client: client.uuid, isActive: true }),
+          em.findOne(
+            SchedulingOption,
+            { client: client.uuid, lastRun: { $ne: null } },
+            { fields: ["lastRun"], orderBy: { lastRun: "DESC" } },
+          ),
+        ]);
+
+        return {
+          uuid: client.uuid,
+          name: client.name,
+          createdAt: client.createdAt,
+          updatedAt: client.updatedAt,
+          deletedAt: client.deletedAt,
+          schedulesCount: count,
+          lastActivity: last?.lastRun,
+        };
+      }),
+    );
   }
 
   async getClientLogs(clientUuid: string): Promise<ActivityLog[]> {
@@ -328,9 +366,9 @@ export class ClientService {
           clientName: token.organizationClient.name,
           clientId: token.organizationClient.uuid,
           tokenId: token.uuid,
-          teamId: response.team.id,
-          name: response.team.name,
-          image: response.team.icon.image_34,
+          teamId: response.team?.id,
+          name: response.team?.name,
+          image: response.team?.icon.image_34,
         };
       }),
     );
@@ -370,7 +408,25 @@ export class ClientService {
     channels: Array<{ id: string; name: string }>;
     ims: Array<{ id: string; name: string; image: string }>;
   }> {
-    return this.slackService.getSlackConversations(clientUuid);
+    const redis: Redis = RedisClient.getInstance();
+    const cacheKey = `${clientUuid}/slack-conversations`;
+    const cachedRaw = await redis.get(cacheKey);
+
+    try {
+      const conversations =
+        await this.slackService.getSlackConversations(clientUuid);
+      await redis.set(cacheKey, JSON.stringify(conversations));
+      return conversations;
+    } catch (err: any) {
+      const status = err?.status ?? err?.response?.status ?? err?.code;
+      if (String(status) === "429" && cachedRaw) {
+        return JSON.parse(cachedRaw);
+      }
+      if (cachedRaw) {
+        return JSON.parse(cachedRaw);
+      }
+      throw err;
+    }
   }
 
   async setSlackConversation(
