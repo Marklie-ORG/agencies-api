@@ -24,8 +24,10 @@ import { FacebookApi } from "lib/apis/FacebookApi.js";
 import { AgencyService } from "lib/services/AgencyService.js";
 import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { ClientService } from "../services/ClientService.js";
+import { AgencyServiceConfig } from "../config/config.js";
 
 const database = await Database.getInstance();
+const config = AgencyServiceConfig.getInstance();
 
 export class UserController extends Router {
   private readonly userService: UserService;
@@ -169,7 +171,8 @@ export class UserController extends Router {
       return;
     }
 
-    const accessToken = data.access_token;
+    // @ts-ignore
+    const accessToken = config.get("VETSOCIAL_TOKEN") as string;
 
     await this.agencyService.saveAgencyToken(user, accessToken);
 
