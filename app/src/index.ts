@@ -11,6 +11,7 @@ import {
   CookiesMiddleware,
   ErrorMiddleware,
   Log,
+  SentryMiddleware,
   ValidationMiddleware,
 } from "marklie-ts-core";
 import { OnboardingController } from "lib/controllers/OnboardingController.js";
@@ -55,6 +56,7 @@ app.use(
 app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
 app.use(ActivityLogMiddleware());
+app.use(SentryMiddleware());
 
 app
   .use(new UserController().routes())
