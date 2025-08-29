@@ -193,13 +193,14 @@ export class ClientService {
 
     return await Promise.all(
       clients.map(async (client) => {
-        const [count, last] = await Promise.all([
+        const [count, last, channels] = await Promise.all([
           em.count(SchedulingOption, { client: client.uuid, isActive: true }),
           em.findOne(
             SchedulingOption,
             { client: client.uuid, lastRun: { $ne: null } },
             { fields: ["lastRun"], orderBy: { lastRun: "DESC" } },
           ),
+          em.findAll(CommunicationChannel, { where: { client: client.uuid } }),
         ]);
 
         return {
@@ -210,6 +211,12 @@ export class ClientService {
           deletedAt: client.deletedAt,
           schedulesCount: count,
           lastActivity: last?.lastRun,
+          channels: channels.map((ch: any) => {
+            if (ch instanceof EmailChannel) return "email";
+            if (ch instanceof WhatsAppChannel) return "whatsapp";
+            if (ch?.constructor?.name === "SlackChannel") return "slack";
+            return;
+          })
         };
       }),
     );
