@@ -57,9 +57,7 @@ jobs:
           image: ${{ env.IMAGE_REPO }}/${{ env.IMAGE_NAME }}:staging-${{ github.sha }}
           region: ${{ env.REGION }}
           env_vars: |
-            REDIS_HOST=${{ secrets.STAGING_REDIS_HOST }}
             ENVIRONMENT=staging
-            GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
 
       - name: Output staging service URL
         run: echo "✅ Staging deployed to ${{ steps.deploy-staging.outputs.url }}"
