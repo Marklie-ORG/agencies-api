@@ -14,6 +14,8 @@ import type {
   VerifyPasswordRecoveryRequest,
 } from "marklie-ts-core/dist/lib/interfaces/UserInterfaces.js";
 import {
+  AuthenticationUtil,
+  CookiesWrapper,
   Database,
   SlackApi,
   SlackService,
@@ -26,6 +28,8 @@ import { ClientTokenType } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { ClientService } from "../services/ClientService.js";
 
 const database = await Database.getInstance();
+
+type ImpersonateUserRequest = { email: string };
 
 export class UserController extends Router {
   private readonly userService: UserService;
@@ -60,6 +64,7 @@ export class UserController extends Router {
     );
     this.post("/feedback", this.sendFeedback.bind(this));
     this.get("/me", this.me.bind(this));
+    this.post("/impersonate", this.impersonate.bind(this));
   }
 
   private async me(ctx: Context) {
@@ -205,6 +210,44 @@ export class UserController extends Router {
     );
 
     ctx.body = { message: "Password changed successfully." };
+    ctx.status = 200;
+  }
+
+  private async impersonate(ctx: Context) {
+    const body = ctx.request.body as ImpersonateUserRequest;
+    const adminUser: User = ctx.state.user as User;
+
+    const isAdmin = (adminUser as any)?.role === "admin";
+    if (!isAdmin) {
+      ctx.body = { message: "Forbidden: Admin role required" };
+      ctx.status = 403;
+      return;
+    }
+
+    if (!body.email) {
+      ctx.body = { message: "Email is required" };
+      ctx.status = 400;
+      return;
+    }
+
+    const target = await database.em.findOne(User, { email: body.email });
+    if (!target) {
+      ctx.body = { message: "Target user not found" };
+      ctx.status = 404;
+      return;
+    }
+
+    const cleaned = await AuthenticationUtil.convertPersistedToUser(target);
+    const refreshToken = AuthenticationUtil.signRefreshToken(cleaned);
+
+    const cookies = ctx.state.cookiesWrapper as CookiesWrapper;
+    cookies.set(
+      "refreshToken",
+      refreshToken,
+      CookiesWrapper.defaultRefreshCookieOptions(),
+    );
+
+    ctx.body = { message: "Impersonation refresh token issued" };
     ctx.status = 200;
   }
 }
