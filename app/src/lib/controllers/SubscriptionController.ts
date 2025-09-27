@@ -6,7 +6,7 @@ import type {
   UpdateSubscriptionRequest,
   User,
 } from "marklie-ts-core";
-import { SubscriptionService } from "lib/services/SubscriptionService";
+import { SubscriptionService } from "lib/services/SubscriptionService.js";
 
 export class SubscriptionController extends Router {
   private service = new SubscriptionService();
