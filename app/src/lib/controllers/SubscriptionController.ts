@@ -28,6 +28,7 @@ export class SubscriptionController extends Router {
     this.put("/update", this.update.bind(this));
 
     this.post("/cancel", this.cancel.bind(this));
+    this.post("/resume", this.resume.bind(this));
     this.get("/payment-methods", this.getPaymentMethods.bind(this));
   }
 
@@ -67,6 +68,13 @@ export class SubscriptionController extends Router {
     const body = ctx.request.body as CancelSubscriptionRequest;
 
     ctx.body = await this.service.cancel(user, body);
+    ctx.status = 200;
+  }
+
+  private async resume(ctx: Context) {
+    const user = ctx.state.user as User;
+
+    ctx.body = await this.service.resume(user);
     ctx.status = 200;
   }
 

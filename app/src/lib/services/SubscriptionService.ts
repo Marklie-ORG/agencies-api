@@ -282,6 +282,19 @@ export class SubscriptionService {
     };
   }
 
+  async resume(user: User) {
+    const org = await this.getUserOrg(user);
+    const sub = await this.stripe.resumeSubscription(org);
+    return {
+      subscription: {
+        id: sub.uuid,
+        status: sub.status,
+        cancelAtPeriodEnd: sub.cancelAtPeriodEnd ?? false,
+        canceledAt: sub.canceledAt ?? null,
+      },
+    };
+  }
+
   async getPaymentMethods(user: User) {
     const org = await this.getUserOrg(user);
     await this.init();
