@@ -8,7 +8,11 @@ import type {
   UpdateClientRequest,
 } from "marklie-ts-core/dist/lib/interfaces/ClientInterfaces.js";
 import { ClientService } from "../services/ClientService.js";
-import { SlackService, TokenService } from "marklie-ts-core";
+import {
+  SlackService,
+  // SubscriptionMiddleware,
+  TokenService,
+} from "marklie-ts-core";
 
 export class ClientController extends Router {
   private readonly clientsService: ClientService;
@@ -21,7 +25,11 @@ export class ClientController extends Router {
   }
 
   private setUpRoutes() {
-    this.post("/", this.createClient.bind(this));
+    this.post(
+      "/",
+      // SubscriptionMiddleware("clients"),
+      this.createClient.bind(this),
+    );
     this.get("/", this.getClients.bind(this));
     this.get("/:clientUuid", this.getClient.bind(this));
     this.delete("/:clientUuid", this.deleteClient.bind(this));

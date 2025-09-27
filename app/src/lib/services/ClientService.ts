@@ -5,7 +5,6 @@ import {
   Database,
   OrganizationClient,
   RedisClient,
-  ScheduledJob,
   SchedulingOption,
   SlackApi,
   type SlackService,
@@ -197,10 +196,13 @@ export class ClientService {
           em.count(SchedulingOption, { client: client.uuid, isActive: true }),
           em.findOne(
             SchedulingOption,
-            { client: client.uuid, lastRun: { $ne: null } },
-            { fields: ["lastRun"], orderBy: { lastRun: "DESC" } },
+            { client: client.uuid },
+            {
+              fields: ["schedule"],
+              orderBy: { schedule: { lastRun: "DESC" } },
+            },
           ),
-          em.findAll(CommunicationChannel, { where: { client: client.uuid } }),
+          em.find(CommunicationChannel, { client: client.uuid }),
         ]);
 
         return {
@@ -210,13 +212,13 @@ export class ClientService {
           updatedAt: client.updatedAt,
           deletedAt: client.deletedAt,
           schedulesCount: count,
-          lastActivity: last?.lastRun,
+          lastActivity: last?.schedule.lastRun,
           channels: channels.map((ch: any) => {
             if (ch instanceof EmailChannel) return "email";
             if (ch instanceof WhatsAppChannel) return "whatsapp";
             if (ch?.constructor?.name === "SlackChannel") return "slack";
             return;
-          })
+          }),
         };
       }),
     );
@@ -271,10 +273,6 @@ export class ClientService {
         client: clientUuid,
       });
       for (const option of schedulingOptions) {
-        const jobs = await em.find(ScheduledJob, {
-          schedulingOption: option.uuid,
-        });
-        jobs.forEach((job) => em.remove(job));
         em.remove(option);
       }
       const adAccounts = await em.find(ClientAdAccount, { client: clientUuid });

@@ -58,7 +58,8 @@ export class OrganizationService {
   }
 
   async listInviteCodes(user: User): Promise<OrganizationInvite[]> {
-    const [roleEntry] = await AuthenticationUtil.getUserRoleInOrganization(user);
+    const [roleEntry] =
+      await AuthenticationUtil.getUserRoleInOrganization(user);
     if (roleEntry.role !== OrganizationRole.OWNER)
       throw new Error("Only owners can view invite codes");
 
@@ -102,7 +103,7 @@ export class OrganizationService {
 
     return schedules.map((schedule: SchedulingOption) => ({
       ...schedule,
-      frequency: cronstrue.toString(schedule.cronExpression),
+      frequency: cronstrue.toString(schedule.schedule.cronExpression),
     }));
   }
 
