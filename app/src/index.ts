@@ -20,6 +20,7 @@ import { ClientController } from "lib/controllers/ClientController.js";
 import { ImagesController } from "lib/controllers/ImagesController.js";
 import { AgencyServiceConfig } from "./lib/config/config.js";
 import { FeatureSuggestionsController } from "./lib/controllers/FeatureSuggestionsController.js";
+import { SubscriptionController } from "./lib/controllers/SubscriptionController.js";
 
 const app = new Koa();
 
@@ -57,7 +58,6 @@ app.use(ValidationMiddleware());
 app.use(ErrorMiddleware());
 app.use(ActivityLogMiddleware());
 app.use(SentryMiddleware());
-
 app
   .use(new UserController().routes())
   .use(new UserController().allowedMethods());
@@ -89,6 +89,10 @@ app
 app
   .use(new FeatureSuggestionsController().routes())
   .use(new FeatureSuggestionsController().allowedMethods());
+
+app
+  .use(new SubscriptionController().routes())
+  .use(new SubscriptionController().allowedMethods());
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
