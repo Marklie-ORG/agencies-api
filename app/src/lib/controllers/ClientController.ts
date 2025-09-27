@@ -10,7 +10,7 @@ import type {
 import { ClientService } from "../services/ClientService.js";
 import {
   SlackService,
-  SubscriptionMiddleware,
+  // SubscriptionMiddleware,
   TokenService,
 } from "marklie-ts-core";
 
@@ -27,7 +27,7 @@ export class ClientController extends Router {
   private setUpRoutes() {
     this.post(
       "/",
-      SubscriptionMiddleware("clients"),
+      // SubscriptionMiddleware("clients"),
       this.createClient.bind(this),
     );
     this.get("/", this.getClients.bind(this));
