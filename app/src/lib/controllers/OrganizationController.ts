@@ -3,8 +3,11 @@ import type { Context } from "koa";
 import type {
   CreateOrganizationRequest,
   UseInviteCodeRequest,
+  ShareClientDatabaseRequest,
+  VerifyClientAccessRequest
 } from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
 import { OrganizationService } from "../services/OrganizationService.js";
+import { CookiesWrapper } from "marklie-ts-core/dist/lib/classes/CookiesWrapper.js";
 
 export class OrganizationController extends Router {
   private readonly organizationService: OrganizationService;
@@ -21,6 +24,11 @@ export class OrganizationController extends Router {
     this.get("/:uuid/logs", this.getLogs.bind(this));
     this.post("/invite-code", this.useInviteCode.bind(this));
     this.get("/scheduling-options", this.getSchedulingOptions.bind(this));
+    this.post("/share-client-database", this.shareClientDatabase.bind(this));
+    this.post(
+      "/verify-client-access",
+      this.verifyClientAccess.bind(this),
+    );
   }
 
   private async createOrganization(ctx: Context) {
@@ -74,4 +82,30 @@ export class OrganizationController extends Router {
     );
     ctx.status = 200;
   }
+
+  private async shareClientDatabase(ctx: Context) {
+    const user = ctx.state.user;
+    const body = ctx.request.body as ShareClientDatabaseRequest;
+
+    await this.organizationService.sendClientAccessEmail(body.clientUuid, body.emails, user);
+    ctx.body = { message: "Client access email sent successfully." };
+    ctx.status = 200;
+  }
+
+  private async verifyClientAccess(ctx: Context) {
+    const body = ctx.request.body as VerifyClientAccessRequest;
+
+    const refreshToken = await this.organizationService.verifyClientAccess(body.token);
+
+    const cookies = ctx.state.cookiesWrapper as CookiesWrapper;
+    cookies.set(
+      "refreshToken",
+      refreshToken,
+      CookiesWrapper.defaultRefreshCookieOptions(),
+    );
+
+    ctx.body = { message: "Client access verified successfully." };
+    ctx.status = 200;
+  }
+
 }

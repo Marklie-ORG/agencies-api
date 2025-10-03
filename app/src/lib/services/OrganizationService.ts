@@ -6,8 +6,10 @@ import {
   OrganizationClient,
   OrganizationInvite,
   OrganizationMember,
+  PubSubWrapper,
   SchedulingOption,
   User,
+  ClientAccessToken
 } from "marklie-ts-core";
 import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { UserService } from "./UserService.js";
@@ -132,4 +134,78 @@ export class OrganizationService {
       () => chars[Math.floor(Math.random() * chars.length)],
     ).join("");
   }
+
+  async sendClientAccessEmail(clientUuid: string, emails: string[], user: User): Promise<void> {
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid, organization: user.activeOrganization! });
+    if (!client) throw new Error("Client not found");
+
+    const topic = "notification-send-client-access-email";
+
+    for (let email of emails) {
+      const clientAccessToken =
+        AuthenticationUtil.signClientAccessToken(clientUuid);
+
+      const token = database.em.create(ClientAccessToken, {
+        token: clientAccessToken,
+        user: user,
+        organizationClient: client,
+        isUsed: false,
+      });
+      await database.em.persistAndFlush(token);
+
+        const payload = {
+          token: clientAccessToken,
+          email: email,
+        };
+
+      await PubSubWrapper.publishMessage(topic, payload);
+    }
+    
+  }
+
+  async verifyClientAccess(
+    token: string
+  ): Promise<string> {
+    const tokenData =
+      await AuthenticationUtil.verifyClientAccessToken(token);
+
+    if (!tokenData) {
+      throw new Error("Invalid or expired client access token");
+    }
+
+    const { clientUuid, isExpired, isClientAccessToken } =
+      tokenData;
+
+    if (isExpired) {
+      throw new Error("Token expired");
+    }
+
+    if (!isClientAccessToken) {
+      throw new Error("Token is not for client access");
+    }
+
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    if (!client) {
+      throw new Error("Client not found");
+    }
+
+    const existingToken = await database.em.findOne(ClientAccessToken, {
+      token: token
+    });
+
+    if (!existingToken) {
+      throw new Error("Token does not exist");
+    }
+
+    if (existingToken.isUsed) {
+      throw new Error("Token already used");
+    }
+
+    existingToken.isUsed = true;
+
+    await database.em.persistAndFlush(existingToken);
+
+    return AuthenticationUtil.signClientAccessRefreshToken(clientUuid);
+  }
+
 }
