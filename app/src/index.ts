@@ -53,6 +53,7 @@ app.use(
     "/api/user/send-password-recovery-email",
     "/api/user/verify-password-recovery",
     "/api/organizations/verify-client-access",
+    "/api/organizations/request-client-access",
   ]),
 );
 app.use(ValidationMiddleware());

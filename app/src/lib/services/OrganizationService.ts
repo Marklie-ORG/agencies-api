@@ -9,11 +9,14 @@ import {
   PubSubWrapper,
   SchedulingOption,
   User,
-  ClientAccessToken
+  ClientAccessToken,
+  ClientAccessRequest,
+  Report
 } from "marklie-ts-core";
 import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { UserService } from "./UserService.js";
 import cronstrue from "cronstrue";
+import type { NotifyClientAccessRequestedMessage } from "marklie-ts-core/dist/lib/interfaces/PubSubInterfaces.js";
 
 const database = await Database.getInstance();
 
@@ -107,6 +110,29 @@ export class OrganizationService {
       ...schedule,
       frequency: cronstrue.toString(schedule.schedule.cronExpression),
     }));
+  }
+
+  async getClientAccessRequests(
+    organizationUuid: string,
+  ): Promise<ClientAccessRequest[]> {
+    const clients = await database.em.find(OrganizationClient, {
+      organization: organizationUuid,
+    });
+
+    if (clients.length === 0) {
+      return [];
+    }
+
+    const clientIds = clients.map((client: OrganizationClient) => client.uuid);
+
+    return await database.em.find(
+      ClientAccessRequest,
+      { organizationClient: { $in: clientIds } },
+      {
+        populate: ["organizationClient"],
+        orderBy: { createdAt: "DESC" },
+      },
+    );
   }
 
   async useInviteCode(code: string, user: User): Promise<void> {
@@ -206,6 +232,64 @@ export class OrganizationService {
     await database.em.persistAndFlush(existingToken);
 
     return AuthenticationUtil.signClientAccessRefreshToken(clientUuid);
+  }
+
+  async requestClientAccess(requestData: { 
+    email: string,
+    reportUuid?: string,
+    clientUuid?: string
+  }): Promise<void> {
+    let client;
+
+    if (requestData.clientUuid) {
+      client = await database.em.findOne(OrganizationClient, { uuid: requestData.clientUuid });
+    }
+    else {
+
+      if (requestData.reportUuid) {
+        let report = await database.em.findOne(Report, { uuid: requestData.reportUuid });
+        client = await database.em.findOne(OrganizationClient, { uuid: report?.client.uuid! });
+      }
+      
+    }
+    
+    if (!client) throw new Error("Client not found");
+
+    const request = database.em.create(ClientAccessRequest, {
+      organizationClient: client,
+      email: requestData.email,
+      isGranted: false,
+    });
+    await database.em.persistAndFlush(request);
+
+    const organization = await database.em.findOne(
+      Organization,
+      { uuid: client.organization.uuid },
+      { populate: ["members.user"] },
+    );
+
+    if (!organization) {
+      return;
+    }
+
+    const topic = "notification-client-access-requested";
+
+    const members = organization.members.getItems();
+
+    const publishPromises = members
+      .filter((member) => !!member.user?.email)
+      .map((member) => {
+        const payload: NotifyClientAccessRequestedMessage = {
+          recipientEmail: member.user.email,
+          requesterEmail: requestData.email,
+          clientName: client.name,
+          organizationUuid: organization.uuid,
+        };
+
+        return PubSubWrapper.publishMessage(topic, payload);
+      });
+
+    await Promise.all(publishPromises);
   }
 
 }
