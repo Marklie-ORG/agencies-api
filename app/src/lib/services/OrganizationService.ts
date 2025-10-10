@@ -215,6 +215,12 @@ export class OrganizationService {
       throw new Error("Client not found");
     }
 
+    const clientAccessRequests = await database.em.find(ClientAccessRequest, { organizationClient: client });
+
+    if (!clientAccessRequests.length) {
+      throw new Error("Client access request does not exist");
+    }
+
     const existingToken = await database.em.findOne(ClientAccessToken, {
       token: token
     });
@@ -230,6 +236,11 @@ export class OrganizationService {
     existingToken.isUsed = true;
 
     await database.em.persistAndFlush(existingToken);
+
+    for (const req of clientAccessRequests) {
+      req.isGranted = true;
+    }
+    await database.em.persistAndFlush(clientAccessRequests);
 
     return AuthenticationUtil.signClientAccessRefreshToken(clientUuid);
   }
