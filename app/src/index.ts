@@ -22,6 +22,7 @@ import { AgencyServiceConfig } from "./lib/config/config.js";
 import { FeatureSuggestionsController } from "./lib/controllers/FeatureSuggestionsController.js";
 import { SubscriptionController } from "./lib/controllers/SubscriptionController.js";
 
+
 const app = new Koa();
 
 app.proxy = true;
