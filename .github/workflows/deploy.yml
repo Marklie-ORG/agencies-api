@@ -101,7 +101,6 @@ jobs:
           image: ${{ env.IMAGE_REPO }}/${{ env.IMAGE_NAME }}:prod-${{ github.sha }}
           region: ${{ env.REGION }}
           env_vars: |
-            REDIS_HOST=${{ secrets.REDIS_HOST }}
             ENVIRONMENT=production
             GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
 

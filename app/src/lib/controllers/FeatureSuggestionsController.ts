@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Context } from "koa";
 import { FeatureSuggestionsService } from "lib/services/FeatureSuggestionsService.js";
 import type {

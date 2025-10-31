@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Context } from "koa";
 import { AdAccountsService } from "lib/services/AdAccountsService.js";
 import type { User } from "marklie-ts-core";

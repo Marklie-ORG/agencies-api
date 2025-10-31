@@ -184,7 +184,7 @@ export class FacebookApi {
 
   public async getBusinesses(): Promise<{ data: any[] }> {
     const res = await this.batch<{ data: any[] }>([
-      { method: "GET", relative_url: "/me/businesses?fields=id,name" },
+      { method: "GET", relative_url: "/me/businesses?fields=id,name,pixel" },
     ]);
 
     const businesses = res[0]?.data ?? [];

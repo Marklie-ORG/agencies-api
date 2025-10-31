@@ -1,26 +1,10 @@
 import Koa from "koa";
-import koabodyparser from "koa-bodyparser";
 import "dotenv/config";
-import cors from "@koa/cors";
-import { AuthController } from "./lib/controllers/AuthenticationController.js";
-import { AdAccountsController } from "lib/controllers/AdAccountsController.js";
-import { UserController } from "./lib/controllers/UserController.js";
-import {
-  ActivityLogMiddleware,
-  AuthMiddleware,
-  CookiesMiddleware,
-  ErrorMiddleware,
-  Log,
-  SentryMiddleware,
-  ValidationMiddleware,
-} from "marklie-ts-core";
-import { OnboardingController } from "lib/controllers/OnboardingController.js";
-import { OrganizationController } from "lib/controllers/OrganizationController.js";
-import { ClientController } from "lib/controllers/ClientController.js";
-import { ImagesController } from "lib/controllers/ImagesController.js";
+import { Log, Validator } from "marklie-ts-core";
 import { AgencyServiceConfig } from "./lib/config/config.js";
-import { FeatureSuggestionsController } from "./lib/controllers/FeatureSuggestionsController.js";
-import { SubscriptionController } from "./lib/controllers/SubscriptionController.js";
+import { routes } from "./routes.js";
+import { agenciesValidationRules } from "./lib/schemas/ValidationRules.js";
+import { applyMiddlewares } from "./middlewares.js";
 
 const app = new Koa();
 
@@ -29,70 +13,11 @@ app.proxy = true;
 const logger: Log = Log.getInstance().extend("service");
 const config = AgencyServiceConfig.getInstance();
 
-app.use(
-  cors({
-    origin: (ctx) => {
-      const allowedOrigins = config.get("ALLOWED_ORIGINS");
-      const requestOrigin = ctx.request.header.origin;
-      if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-        return requestOrigin;
-      }
-      return allowedOrigins[0];
-    },
-    credentials: true,
-  }),
-);
+Validator.registerRules(agenciesValidationRules);
+logger.info("Validation rules registered!");
 
-app.use(koabodyparser());
-app.use(CookiesMiddleware);
-app.use(
-  AuthMiddleware([
-    "/api/auth/login",
-    "/api/auth/register",
-    "/api/auth/refresh",
-    "/api/user/send-password-recovery-email",
-    "/api/user/verify-password-recovery",
-  ]),
-);
-app.use(ValidationMiddleware());
-app.use(ErrorMiddleware());
-app.use(ActivityLogMiddleware());
-app.use(SentryMiddleware());
-app
-  .use(new UserController().routes())
-  .use(new UserController().allowedMethods());
-
-app
-  .use(new AuthController().routes())
-  .use(new AuthController().allowedMethods());
-
-app
-  .use(new AdAccountsController().routes())
-  .use(new AdAccountsController().allowedMethods());
-
-app
-  .use(new OnboardingController().routes())
-  .use(new OnboardingController().allowedMethods());
-
-app
-  .use(new OrganizationController().routes())
-  .use(new OrganizationController().allowedMethods());
-
-app
-  .use(new ClientController().routes())
-  .use(new ClientController().allowedMethods());
-
-app
-  .use(new ImagesController().routes())
-  .use(new ImagesController().allowedMethods());
-
-app
-  .use(new FeatureSuggestionsController().routes())
-  .use(new FeatureSuggestionsController().allowedMethods());
-
-app
-  .use(new SubscriptionController().routes())
-  .use(new SubscriptionController().allowedMethods());
+applyMiddlewares(app, config);
+app.use(routes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

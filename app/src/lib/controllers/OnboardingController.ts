@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Context } from "koa";
 import type { SaveAnswerRequest } from "marklie-ts-core/dist/lib/interfaces/OnboardingInterfaces.js";
 import { OnboardingService } from "lib/services/OnboardingService.js";

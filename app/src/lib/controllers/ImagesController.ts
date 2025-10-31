@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import type { Context } from "koa";
 import { ImagesService } from "lib/services/ImagesService.js";
 import { Writable } from "node:stream";
