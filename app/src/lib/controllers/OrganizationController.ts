@@ -3,8 +3,12 @@ import type { Context } from "koa";
 import type {
   CreateOrganizationRequest,
   UseInviteCodeRequest,
+  ShareClientDatabaseRequest,
+  VerifyClientAccessRequest,
+  RequestClientAccessRequest
 } from "marklie-ts-core/dist/lib/interfaces/OrganizationInterfaces.js";
 import { OrganizationService } from "../services/OrganizationService.js";
+import { CookiesWrapper } from "marklie-ts-core/dist/lib/classes/CookiesWrapper.js";
 
 export class OrganizationController extends Router {
   private readonly organizationService: OrganizationService;
@@ -19,8 +23,21 @@ export class OrganizationController extends Router {
     this.get("/invite-code", this.generateInviteCode.bind(this));
     this.get("/invite-codes", this.listInviteCodes.bind(this));
     this.get("/:uuid/logs", this.getLogs.bind(this));
+    this.get(
+      "/client-access-requests",
+      this.getClientAccessRequests.bind(this),
+    );
     this.post("/invite-code", this.useInviteCode.bind(this));
     this.get("/scheduling-options", this.getSchedulingOptions.bind(this));
+    this.post("/share-client-database", this.shareClientDatabase.bind(this));
+    this.post(
+      "/verify-client-access",
+      this.verifyClientAccess.bind(this),
+    );
+    this.post(
+      "/request-client-access",
+      this.requestClientAccess.bind(this),
+    );
   }
 
   private async createOrganization(ctx: Context) {
@@ -74,4 +91,52 @@ export class OrganizationController extends Router {
     );
     ctx.status = 200;
   }
+
+  private async shareClientDatabase(ctx: Context) {
+    const user = ctx.state.user;
+    const body = ctx.request.body as ShareClientDatabaseRequest;
+
+    await this.organizationService.sendClientAccessEmail(body.clientUuid, body.emails, user);
+    ctx.body = { message: "Client access email sent successfully." };
+    ctx.status = 200;
+  }
+
+  private async getClientAccessRequests(ctx: Context) {
+    const user = ctx.state.user;
+
+    ctx.body = await this.organizationService.getClientAccessRequests(
+      user.activeOrganization.uuid,
+    );
+    ctx.status = 200;
+  }
+
+  private async verifyClientAccess(ctx: Context) {
+    const body = ctx.request.body as VerifyClientAccessRequest;
+
+    const refreshToken = await this.organizationService.verifyClientAccess(body.token);
+
+    const cookies = ctx.state.cookiesWrapper as CookiesWrapper;
+    cookies.set(
+      "refreshToken",
+      refreshToken,
+      CookiesWrapper.defaultRefreshCookieOptions(),
+    );
+
+    ctx.body = { message: "Client access verified successfully." };
+    ctx.status = 200;
+  }
+
+  private async requestClientAccess(ctx: Context) {
+    const body = ctx.request.body as RequestClientAccessRequest;
+
+    await this.organizationService.requestClientAccess({
+      email: body.email,
+      ...(body.reportUuid && { reportUuid: body.reportUuid }),
+      ...(body.clientUuid && { clientUuid: body.clientUuid }),
+    });
+
+    ctx.body = { message: "Client access requested successfully." };
+    ctx.status = 200;
+  }
+
 }

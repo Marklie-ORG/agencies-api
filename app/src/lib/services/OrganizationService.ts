@@ -6,12 +6,17 @@ import {
   OrganizationClient,
   OrganizationInvite,
   OrganizationMember,
+  PubSubWrapper,
   SchedulingOption,
   User,
+  ClientAccessToken,
+  ClientAccessRequest,
+  Report
 } from "marklie-ts-core";
 import { OrganizationRole } from "marklie-ts-core/dist/lib/enums/enums.js";
 import { UserService } from "./UserService.js";
 import cronstrue from "cronstrue";
+import type { NotifyClientAccessRequestedMessage } from "marklie-ts-core/dist/lib/interfaces/PubSubInterfaces.js";
 
 const database = await Database.getInstance();
 
@@ -107,6 +112,29 @@ export class OrganizationService {
     }));
   }
 
+  async getClientAccessRequests(
+    organizationUuid: string,
+  ): Promise<ClientAccessRequest[]> {
+    const clients = await database.em.find(OrganizationClient, {
+      organization: organizationUuid,
+    });
+
+    if (clients.length === 0) {
+      return [];
+    }
+
+    const clientIds = clients.map((client: OrganizationClient) => client.uuid);
+
+    return await database.em.find(
+      ClientAccessRequest,
+      { organizationClient: { $in: clientIds } },
+      {
+        populate: ["organizationClient"],
+        orderBy: { createdAt: "DESC" },
+      },
+    );
+  }
+
   async useInviteCode(code: string, user: User): Promise<void> {
     const invite = await database.em.findOne(OrganizationInvite, { code });
     if (!invite || invite.expiresAt < new Date() || invite.usedAt)
@@ -132,4 +160,145 @@ export class OrganizationService {
       () => chars[Math.floor(Math.random() * chars.length)],
     ).join("");
   }
+
+  async sendClientAccessEmail(clientUuid: string, emails: string[], user: User): Promise<void> {
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid, organization: user.activeOrganization! });
+    if (!client) throw new Error("Client not found");
+
+    const topic = "notification-send-client-access-email";
+
+    for (let email of emails) {
+      const clientAccessToken =
+        AuthenticationUtil.signClientAccessToken(clientUuid);
+
+      const token = database.em.create(ClientAccessToken, {
+        token: clientAccessToken,
+        user: user,
+        organizationClient: client,
+        isUsed: false,
+      });
+      await database.em.persistAndFlush(token);
+
+        const payload = {
+          token: clientAccessToken,
+          email: email,
+        };
+
+      await PubSubWrapper.publishMessage(topic, payload);
+    }
+    
+  }
+
+  async verifyClientAccess(
+    token: string
+  ): Promise<string> {
+    const tokenData =
+      await AuthenticationUtil.verifyClientAccessToken(token);
+
+    if (!tokenData) {
+      throw new Error("Invalid or expired client access token");
+    }
+
+    const { clientUuid, isExpired, isClientAccessToken } =
+      tokenData;
+
+    if (isExpired) {
+      throw new Error("Token expired");
+    }
+
+    if (!isClientAccessToken) {
+      throw new Error("Token is not for client access");
+    }
+
+    const client = await database.em.findOne(OrganizationClient, { uuid: clientUuid });
+    if (!client) {
+      throw new Error("Client not found");
+    }
+
+    const existingToken = await database.em.findOne(ClientAccessToken, {
+      token: token
+    });
+
+    if (!existingToken) {
+      throw new Error("Token does not exist");
+    }
+
+    if (existingToken.isUsed) {
+      throw new Error("Token already used");
+    }
+
+    existingToken.isUsed = true;
+
+    await database.em.persistAndFlush(existingToken);
+
+    const clientAccessRequests = await database.em.find(ClientAccessRequest, { organizationClient: client });
+
+    if (clientAccessRequests.length) {
+      for (const req of clientAccessRequests) {
+        req.isGranted = true;
+      }
+      await database.em.persistAndFlush(clientAccessRequests);
+    }
+
+    return AuthenticationUtil.signClientAccessRefreshToken(clientUuid);
+  }
+
+  async requestClientAccess(requestData: { 
+    email: string,
+    reportUuid?: string,
+    clientUuid?: string
+  }): Promise<void> {
+    let client;
+
+    if (requestData.clientUuid) {
+      client = await database.em.findOne(OrganizationClient, { uuid: requestData.clientUuid });
+    }
+    else {
+
+      if (requestData.reportUuid) {
+        let report = await database.em.findOne(Report, { uuid: requestData.reportUuid });
+        client = await database.em.findOne(OrganizationClient, { uuid: report?.client.uuid! });
+      }
+      
+    }
+    
+    if (!client) throw new Error("Client not found");
+
+    const request = database.em.create(ClientAccessRequest, {
+      organizationClient: client,
+      email: requestData.email,
+      isGranted: false,
+    });
+    await database.em.persistAndFlush(request);
+
+    const organization = await database.em.findOne(
+      Organization,
+      { uuid: client.organization.uuid },
+      { populate: ["members.user"] },
+    );
+
+    if (!organization) {
+      return;
+    }
+
+    const topic = "notification-client-access-requested";
+
+    const members = organization.members.getItems();
+
+    const publishPromises = members
+      .filter((member) => !!member.user?.email)
+      .map((member) => {
+        const payload: NotifyClientAccessRequestedMessage = {
+          recipientEmail: member.user.email,
+          requesterEmail: requestData.email,
+          clientName: client.name,
+          organizationUuid: organization.uuid,
+        };
+
+        return PubSubWrapper.publishMessage(topic, payload);
+      });
+
+    await Promise.all(publishPromises);
+  }
+
 }
